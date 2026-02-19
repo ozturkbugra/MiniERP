@@ -1,0 +1,6 @@
+@MiniERP.WebAPI_HostAddress = http://localhost:5216
+
+GET {{MiniERP.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
