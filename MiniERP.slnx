@@ -1,4 +1,15 @@
 <Solution>
+  <Folder Name="/Frontend/">
+    <File Path="Client/.gitignore" />
+    <File Path="Client/eslint.config.js" />
+    <File Path="Client/index.html" />
+    <File Path="Client/package.json" />
+    <File Path="Client/README.md" />
+    <File Path="Client/tsconfig.app.json" />
+    <File Path="Client/tsconfig.json" />
+    <File Path="Client/tsconfig.node.json" />
+    <File Path="Client/vite.config.ts" />
+  </Folder>
   <Project Path="MiniERP.Application/MiniERP.Application.csproj" />
   <Project Path="MiniERP.Domain/MiniERP.Domain.csproj" />
   <Project Path="MiniERP.Infrastructure/MiniERP.Infrastructure.csproj" />
