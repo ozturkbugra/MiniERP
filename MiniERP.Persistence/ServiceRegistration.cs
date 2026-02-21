@@ -29,5 +29,6 @@ public static class ServiceRegistration
         .AddEntityFrameworkStores<AppDbContext>();
 
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IRoleService, RoleService>();
     }
 }
