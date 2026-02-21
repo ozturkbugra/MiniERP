@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Roles.Commands;
@@ -16,7 +17,9 @@ namespace MiniERP.WebAPI.Controllers
             _mediator = mediator;
         }
 
+       
         [HttpPost("CreateRole")]
+        [Authorize]
         public async Task<IActionResult> CreateRole(CreateRoleCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
