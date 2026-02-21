@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MiniERP.Application.Interfaces;
 using MiniERP.Persistence.Context;
 using MiniERP.Persistence.IdentityModels;
+using MiniERP.Persistence.Services;
 using System.Reflection;
 
 namespace MiniERP.Persistence;
@@ -25,5 +27,7 @@ public static class ServiceRegistration
             options.Password.RequireUppercase = false;
         })
         .AddEntityFrameworkStores<AppDbContext>();
+
+        services.AddScoped<IAuthService, AuthService>();
     }
 }

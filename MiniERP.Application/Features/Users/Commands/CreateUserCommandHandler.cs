@@ -1,14 +1,25 @@
 ﻿using MediatR;
+using MiniERP.Application.Interfaces;
+using MiniERP.Domain.Common;
 
 namespace MiniERP.Application.Features.Users.Commands.CreateUser;
-
-public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, string>
+public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Result>
 {
-    // buraya Dependency Injection ile IAuthService (Kimlik Servisimiz) gelecek.
+    private readonly IAuthService _authService;
 
-    public async Task<string> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public CreateUserCommandHandler(IAuthService authService)
     {
-        // Şimdilik sadece MediatR'ın çalıştığını test etmek için sahte bir mesaj dönüyoruz.
-        return $"{request.FirstName} {request.LastName} kullanıcısı için MediatR başarıyla tetiklendi.";
+        _authService = authService;
+    }
+
+    public async Task<Result> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    {
+        var response = await _authService.RegisterAsync(
+            request.FirstName,
+            request.LastName,
+            request.Email,
+            request.Password);
+
+        return response;
     }
 }
