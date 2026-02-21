@@ -1,3 +1,4 @@
+using MiniERP.Application;
 using MiniERP.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);

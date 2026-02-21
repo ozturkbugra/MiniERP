@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\MiniERP.Application\MiniERP.Application.csproj" />
     <ProjectReference Include="..\MiniERP.Infrastructure\MiniERP.Infrastructure.csproj" />
     <ProjectReference Include="..\MiniERP.Persistence\MiniERP.Persistence.csproj" />

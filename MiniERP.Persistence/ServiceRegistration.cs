@@ -26,10 +26,4 @@ public static class ServiceRegistration
         })
         .AddEntityFrameworkStores<AppDbContext>();
     }
-
-    public static void AddApplicationServices(this IServiceCollection services)
-    {
-        // Bu katmandaki tüm MediatR Handler'larını otomatik bul ve sisteme kaydet!
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-    }
 }
