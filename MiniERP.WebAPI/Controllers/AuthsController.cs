@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MiniERP.Application.Features.Users.Commands.AssignRole;
+using MiniERP.Application.Features.AssignRole.Commands;
+using MiniERP.Application.Features.Auth.Commands;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
 
 namespace MiniERP.WebAPI.Controllers
@@ -31,5 +32,19 @@ namespace MiniERP.WebAPI.Controllers
             var response = await _mediator.Send(request, cancellationToken);
             return Ok(response);
         }
+
+        [HttpPost("Login")]
+        public async Task<IActionResult> Login(LoginCommand request, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(request, cancellationToken);
+
+            if (!response.IsSuccess)
+            {
+                return BadRequest(response);
+            }
+
+            return Ok(response);
+        }
+
     }
 }

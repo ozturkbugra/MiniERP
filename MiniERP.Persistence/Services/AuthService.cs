@@ -8,14 +8,17 @@ namespace MiniERP.Persistence.Services;
 public sealed class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IJwtProvider _jwtProvider;
 
-    public AuthService(UserManager<ApplicationUser> userManager)
+    public AuthService(UserManager<ApplicationUser> userManager, IJwtProvider jwtProvider)
     {
         _userManager = userManager;
+        _jwtProvider = jwtProvider;
     }
 
     public async Task<Result> AssignRoleAsync(string userId, string roleName)
     {
+        // 1. Kullanıcıyı bul
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
@@ -34,6 +37,32 @@ public sealed class AuthService : IAuthService
         var errors = result.Errors.Select(e => e.Description);
         return Result.Failure("Rol atanırken bir hata oluştu.", errors);
     }
+
+    public async Task<Result<string>> LoginAsync(string email, string password)
+    {
+        // 1. Kullanıcıyı bul
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            return Result<string>.Failure("Kullanıcı bulunamadı veya şifre hatalı.");
+        }
+
+        // 2. Şifreyi kontrol et
+        var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, password);
+        if (!isPasswordCorrect)
+        {
+            return Result<string>.Failure("Kullanıcı bulunamadı veya şifre hatalı.");
+        }
+
+        // 3. Rolleri al
+        var roles = await _userManager.GetRolesAsync(user);
+
+        // 4. Token üret
+        var token = await _jwtProvider.CreateTokenAsync(user.Id.ToString(), user.Email!, roles);
+
+        return Result<string>.Success(token, "Giriş başarılı!");
+    }
+    
 
     public async Task<Result> RegisterAsync(string firstName, string lastName, string email, string password)
     {
