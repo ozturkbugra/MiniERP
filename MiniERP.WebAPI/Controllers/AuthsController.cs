@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MiniERP.Application.Features.Users.Commands.AssignRole;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
 
 namespace MiniERP.WebAPI.Controllers
@@ -21,6 +22,13 @@ namespace MiniERP.WebAPI.Controllers
         {
             var response = await _mediator.Send(request, cancellationToken);
 
+            return Ok(response);
+        }
+
+        [HttpPost("AssignRole")]
+        public async Task<IActionResult> AssignRole(AssignRoleCommand request, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(request, cancellationToken);
             return Ok(response);
         }
     }
