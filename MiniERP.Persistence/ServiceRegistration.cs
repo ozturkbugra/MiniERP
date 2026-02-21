@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniERP.Persistence.Context;
 using MiniERP.Persistence.IdentityModels;
+using System.Reflection;
 
 namespace MiniERP.Persistence;
 
@@ -24,5 +25,11 @@ public static class ServiceRegistration
             options.Password.RequireUppercase = false;
         })
         .AddEntityFrameworkStores<AppDbContext>();
+    }
+
+    public static void AddApplicationServices(this IServiceCollection services)
+    {
+        // Bu katmandaki tüm MediatR Handler'larını otomatik bul ve sisteme kaydet!
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
     }
 }
