@@ -5,6 +5,7 @@ using MiniERP.Application.Features.AssignRole.Commands;
 using MiniERP.Application.Features.Auth.Commands.LoginCommands;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
+using MiniERP.Application.Features.Users.Queries.GetUserById;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -52,6 +53,14 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
+            return Ok(response);
+        }
+
+        [HttpGet("GetById/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new GetUserByIdQuery(id), cancellationToken);
             return Ok(response);
         }
 
