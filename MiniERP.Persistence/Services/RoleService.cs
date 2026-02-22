@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Application.Features.Roles.Commands.UpdateRoles;
 using MiniERP.Application.Features.Roles.Queries.GetAllRoles;
 using MiniERP.Application.Features.Roles.Queries.GetRoleById;
 using MiniERP.Application.Interfaces;
@@ -62,5 +63,25 @@ public sealed class RoleService : IRoleService
         var response = new GetRoleByIdQueryResponse(role.Id.ToString(), role.Name!, role.Description);
 
         return Result<GetRoleByIdQueryResponse>.Success(response, "Rol bilgileri başarıyla getirildi.");
+    }
+
+    public async Task<Result<string>> UpdateRoleAsync(UpdateRoleCommand request, CancellationToken cancellationToken)
+    {
+        var role = await _roleManager.FindByIdAsync(request.Id);
+
+        if (role is null)
+            return Result<string>.Failure("Güncellenecek rol bulunamadı.");
+
+        role.Name = request.Name;
+        role.Description = request.Description;
+
+        var result = await _roleManager.UpdateAsync(role);
+
+        if (result.Succeeded)
+        {
+            return Result<string>.Success(role.Id.ToString(), "Rol başarıyla güncellendi.");
+        }
+
+        return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 }
