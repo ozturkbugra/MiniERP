@@ -68,18 +68,19 @@ public sealed class AuthService : IAuthService
     public async Task<Result<List<GetAllUsersQueryResponse>>> GetAllUsersAsync(CancellationToken cancellationToken)
     {
         var users = await _userManager.Users
-            .Where(u => !u.IsDeleted)
-            .Select(u => new GetAllUsersQueryResponse(
-                u.Id.ToString(),
-                u.FirstName,
-                u.LastName,
-                u.Email!,
-                u.UserName!,
-                !u.IsDeleted
-            ))
-            .ToListAsync(cancellationToken);
+        .Where(u => !u.IsDeleted)
+        .Select(u => new GetAllUsersQueryResponse(
+            u.Id.ToString(),
+            u.FirstName,
+            u.LastName,
+            u.Email!,
+            u.UserName!,
+            !u.IsDeleted,
+            _userManager.GetRolesAsync(u).Result.ToList()
+        ))
+        .ToListAsync(cancellationToken);
 
-        return Result<List<GetAllUsersQueryResponse>>.Success(users, "Kullanıcı listesi başarıyla getirildi.");
+        return Result<List<GetAllUsersQueryResponse>>.Success(users, "Kullanıcılar ve rolleri başarıyla getirildi.");
     }
 
     public async Task<Result<GetUserByIdQueryResponse>> GetUserByIdAsync(string id, CancellationToken cancellationToken)
