@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using MiniERP.Application.Features.Roles.Queries.GetAllRoles;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Persistence.IdentityModels;
@@ -7,11 +9,11 @@ namespace MiniERP.Persistence.Services;
 
 public sealed class RoleService : IRoleService
 {
-    private readonly RoleManager<ApplicationRole> _userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager;
 
     public RoleService(RoleManager<ApplicationRole> userManager)
     {
-        _userManager = userManager;
+        _roleManager = userManager;
     }
 
     public async Task<Result> CreateRoleAsync(string name, string description)
@@ -24,7 +26,7 @@ public sealed class RoleService : IRoleService
 
         };
 
-        var result = await _userManager.CreateAsync(role);
+        var result = await _roleManager.CreateAsync(role);
 
         if (result.Succeeded)
         {
@@ -34,5 +36,18 @@ public sealed class RoleService : IRoleService
 
         var errored = result.Errors.Select(e => e.Description);
         return Result.Failure("Rol eklerken bir hata oluştu.", errored);
+    }
+
+    public async Task<Result<List<GetAllRolesQueryResponse>>> GetAllRolesAsync(CancellationToken cancellationToken)
+    {
+        var roles = await _roleManager.Roles
+            .Select(r => new GetAllRolesQueryResponse(
+                r.Id.ToString(),
+                r.Name!,
+                r.Description
+            ))
+            .ToListAsync(cancellationToken);
+
+        return Result<List<GetAllRolesQueryResponse>>.Success(roles, "Rol listesi başarıyla getirildi.");
     }
 }
