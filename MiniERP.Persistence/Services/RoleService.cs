@@ -104,4 +104,17 @@ public sealed class RoleService : IRoleService
 
         return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
+
+    public async Task<bool> IsRoleNameUniqueAsync(string name, string? currentRoleId = null, CancellationToken cancellationToken = default)
+    {
+        var role = await _roleManager.FindByNameAsync(name);
+
+        if (role is null) return true;
+
+        if (currentRoleId is null) return false;
+
+        // Eğer rol varsa ve ID'si bizim elimizdekiyle aynıysa (kendi ismidir), unique kabul edilir.
+        // Farklıysa başka bir rol bu ismi kapmış demektir.
+        return role.Id.ToString() == currentRoleId;
+    }
 }

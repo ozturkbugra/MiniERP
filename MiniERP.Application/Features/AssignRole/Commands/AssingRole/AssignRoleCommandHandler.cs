@@ -2,7 +2,7 @@
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 
-namespace MiniERP.Application.Features.AssignRole.Commands;
+namespace MiniERP.Application.Features.AssignRole.Commands.AssingRole;
 
 public sealed class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand, Result>
 {

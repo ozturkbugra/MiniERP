@@ -17,19 +17,21 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
     {
         if (!_validators.Any())
         {
-            return await next(); // Kural yoksa direkt geç
+            return await next();
         }
 
         var context = new ValidationContext<TRequest>(request);
 
-        // 1. Kuralları çalıştır ve hata nesnelerini (ValidationFailure) topla
-        var failures = _validators
-            .Select(v => v.Validate(context))
+        // 1. Validate yerine ValidateAsync kullanıyoruz (Tüm kural kitaplarını asenkron oku)
+        var validationResults = await Task.WhenAll(
+            _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+
+        // 2. Hataları topla
+        var failures = validationResults
             .SelectMany(result => result.Errors)
             .Where(f => f != null)
             .ToList();
 
-        // 2. Eğer hata varsa, FluentValidation'ın kendi exception'ına listeyi doğrudan ver
         if (failures.Any())
         {
             throw new ValidationException(failures);

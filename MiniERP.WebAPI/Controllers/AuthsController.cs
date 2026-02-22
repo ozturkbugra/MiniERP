@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniERP.Application.Features.AssignRole.Commands;
+using MiniERP.Application.Features.AssignRole.Commands.AssingRole;
 using MiniERP.Application.Features.AssignRole.Commands.RemoveRoleFromUser;
 using MiniERP.Application.Features.Auth.Commands.LoginCommands;
 using MiniERP.Application.Features.Users.Commands.ChangePassword;

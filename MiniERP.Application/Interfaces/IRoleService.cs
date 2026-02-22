@@ -12,6 +12,6 @@ public interface IRoleService
     Task<Result<List<GetAllRolesQueryResponse>>> GetAllRolesAsync(CancellationToken cancellationToken);
     Task<Result<GetRoleByIdQueryResponse>> GetRoleByIdAsync(string id, CancellationToken cancellationToken);
     Task<Result<string>> UpdateRoleAsync(UpdateRoleCommand request, CancellationToken cancellationToken);
-
     Task<Result<string>> DeleteRoleAsync(string id, CancellationToken cancellationToken);
+    Task<bool> IsRoleNameUniqueAsync(string name, string? currentRoleId = null, CancellationToken cancellationToken = default);
 }
