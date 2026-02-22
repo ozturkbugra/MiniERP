@@ -43,6 +43,7 @@ public sealed class RoleService : IRoleService
     public async Task<Result<List<GetAllRolesQueryResponse>>> GetAllRolesAsync(CancellationToken cancellationToken)
     {
         var roles = await _roleManager.Roles
+            .Where(r => !r.IsDeleted)
             .Select(r => new GetAllRolesQueryResponse(
                 r.Id.ToString(),
                 r.Name!,
@@ -57,7 +58,7 @@ public sealed class RoleService : IRoleService
     {
         var role = await _roleManager.FindByIdAsync(id);
 
-        if (role is null)
+        if (role is null || role.IsDeleted)
             return Result<GetRoleByIdQueryResponse>.Failure("Rol bulunamadı.");
 
         var response = new GetRoleByIdQueryResponse(role.Id.ToString(), role.Name!, role.Description);
@@ -69,7 +70,7 @@ public sealed class RoleService : IRoleService
     {
         var role = await _roleManager.FindByIdAsync(request.Id);
 
-        if (role is null)
+        if (role is null || role.IsDeleted)
             return Result<string>.Failure("Güncellenecek rol bulunamadı.");
 
         role.Name = request.Name;
@@ -80,6 +81,25 @@ public sealed class RoleService : IRoleService
         if (result.Succeeded)
         {
             return Result<string>.Success(role.Id.ToString(), "Rol başarıyla güncellendi.");
+        }
+
+        return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
+    public async Task<Result<string>> DeleteRoleAsync(string id, CancellationToken cancellationToken)
+    {
+        var role = await _roleManager.FindByIdAsync(id);
+
+        if (role is null || role.IsDeleted)
+            return Result<string>.Failure("Silinecek rol bulunamadı.");
+
+        role.IsDeleted = true;
+
+        var result = await _roleManager.UpdateAsync(role);
+
+        if (result.Succeeded)
+        {
+            return Result<string>.Success(role.Id.ToString(), "Rol başarıyla pasife çekildi (Soft Delete).");
         }
 
         return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
