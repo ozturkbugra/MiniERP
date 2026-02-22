@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Roles.Commands.CreateRoles;
 using MiniERP.Application.Features.Roles.Queries.GetAllRoles;
+using MiniERP.Application.Features.Roles.Queries.GetRoleById;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -34,6 +35,12 @@ namespace MiniERP.WebAPI.Controllers
             return Ok(response);
         }
 
-        
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new GetRoleByIdQuery(id), cancellationToken);
+            return Ok(response);
+        }
     }
 }

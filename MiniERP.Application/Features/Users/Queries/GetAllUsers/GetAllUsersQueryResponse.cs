@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace MiniERP.Application.Features.Users.Queries.GetAllUsers
+﻿namespace MiniERP.Application.Features.Users.Queries.GetAllUsers
 {
     public sealed record GetAllUsersQueryResponse(
      string Id,

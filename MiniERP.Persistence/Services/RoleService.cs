@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Application.Features.Roles.Queries.GetAllRoles;
+using MiniERP.Application.Features.Roles.Queries.GetRoleById;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Persistence.IdentityModels;
@@ -49,5 +50,17 @@ public sealed class RoleService : IRoleService
             .ToListAsync(cancellationToken);
 
         return Result<List<GetAllRolesQueryResponse>>.Success(roles, "Rol listesi başarıyla getirildi.");
+    }
+
+    public async Task<Result<GetRoleByIdQueryResponse>> GetRoleByIdAsync(string id, CancellationToken cancellationToken)
+    {
+        var role = await _roleManager.FindByIdAsync(id);
+
+        if (role is null)
+            return Result<GetRoleByIdQueryResponse>.Failure("Rol bulunamadı.");
+
+        var response = new GetRoleByIdQueryResponse(role.Id.ToString(), role.Name!, role.Description);
+
+        return Result<GetRoleByIdQueryResponse>.Success(response, "Rol bilgileri başarıyla getirildi.");
     }
 }
