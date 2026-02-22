@@ -1,4 +1,5 @@
-﻿using MiniERP.Application.Features.Users.Queries.GetAllUsers;
+﻿using MiniERP.Application.Features.Users.Commands.UpdateUser;
+using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
 using MiniERP.Domain.Common;
 
@@ -15,4 +16,6 @@ public interface IAuthService
     Task<Result<List<GetAllUsersQueryResponse>>> GetAllUsersAsync(CancellationToken cancellationToken);
 
     Task<Result<GetUserByIdQueryResponse>> GetUserByIdAsync(string id, CancellationToken cancellationToken);
+
+    Task<Result<string>> UpdateUserAsync(UpdateUserCommand request, CancellationToken cancellationToken);
 }

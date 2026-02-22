@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Application.Features.Users.Commands.UpdateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
 using MiniERP.Application.Interfaces;
@@ -125,5 +126,27 @@ public sealed class AuthService : IAuthService
         // Hata varsa hataları topla ve dön
         var errors = result.Errors.Select(e => e.Description);
         return Result.Failure("Kullanıcı oluşturulurken bir hata meydana geldi.", errors);
+    }
+
+    public async Task<Result<string>> UpdateUserAsync(UpdateUserCommand request, CancellationToken cancellationToken)
+    {
+        var user = await _userManager.FindByIdAsync(request.Id);
+
+        if (user is null)
+            return Result<string>.Failure("Kullanıcı bulunamadı.");
+
+        user.FirstName = request.FirstName;
+        user.LastName = request.LastName;
+        user.Email = request.Email;
+        user.UserName = request.UserName;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (result.Succeeded)
+        {
+            return Result<string>.Success(user.Id.ToString(), "Kullanıcı bilgileri başarıyla güncellendi.");
+        }
+
+        return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 }

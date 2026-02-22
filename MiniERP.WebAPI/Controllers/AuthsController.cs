@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.AssignRole.Commands;
 using MiniERP.Application.Features.Auth.Commands.LoginCommands;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
+using MiniERP.Application.Features.Users.Commands.UpdateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
 
@@ -64,6 +65,13 @@ namespace MiniERP.WebAPI.Controllers
             return Ok(response);
         }
 
+        [HttpPut]
+        [Authorize]
+        public async Task<IActionResult> Update(UpdateUserCommand request, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(request, cancellationToken);
+            return Ok(response);
+        }
 
     }
 }
