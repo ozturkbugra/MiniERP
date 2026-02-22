@@ -90,15 +90,18 @@ public sealed class AuthService : IAuthService
         if (user is null || user.IsDeleted)
             return Result<GetUserByIdQueryResponse>.Failure("Kullanıcı bulunamadı.");
 
+        var roles = await _userManager.GetRolesAsync(user);
+
         var response = new GetUserByIdQueryResponse(
             user.Id.ToString(),
             user.FirstName,
             user.LastName,
             user.Email!,
             user.UserName!,
-            !user.IsDeleted);
+            !user.IsDeleted,
+            roles.ToList()); 
 
-        return Result<GetUserByIdQueryResponse>.Success(response, "Kullanıcı bilgileri başarıyla getirildi.");
+        return Result<GetUserByIdQueryResponse>.Success(response, "Kullanıcı bilgileri ve rolleri başarıyla getirildi.");
     }
 
     public async Task<Result<string>> LoginAsync(string email, string password)
