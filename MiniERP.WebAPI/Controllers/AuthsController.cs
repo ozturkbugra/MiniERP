@@ -33,6 +33,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpPost("AssignRole")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignRole(AssignRoleCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
@@ -40,7 +41,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpDelete("remove-role")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveRoleFromUser(RemoveRoleFromUserCommand request)
         {
             var response = await _mediator.Send(request);
@@ -61,7 +62,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpGet("GetAll")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);

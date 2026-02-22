@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Roles.Commands.CreateRoles;
 using MiniERP.Application.Features.Roles.Commands.DeleteRoles;
@@ -22,7 +21,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new GetAllRolesQuery(), cancellationToken);
@@ -30,7 +29,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpPost("CreateRole")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateRole(CreateRoleCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
@@ -38,7 +37,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new GetRoleByIdQuery(id), cancellationToken);
@@ -46,7 +45,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpPut]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(UpdateRoleCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
@@ -54,7 +53,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new DeleteRoleCommand(id), cancellationToken);
