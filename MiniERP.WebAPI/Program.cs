@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MiniERP.Application;
 using MiniERP.Persistence;
+using MiniERP.Persistence.IdentityModels;
 using MiniERP.WebAPI.Middlewares;
 using System.Text;
 
@@ -93,5 +95,22 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>(); // Kendi manager'ın veya direkt RoleManager
+
+        await DbInitializer.SeedAsync(userManager, roleManager);
+    }
+    catch (Exception ex)
+    {
+        // Loglama yapılabilir
+    }
+}
+
 
 app.Run();
