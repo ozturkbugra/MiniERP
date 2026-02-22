@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MiniERP.Application.Features.Roles.Commands;
+using MiniERP.Application.Features.Roles.Commands.CreateRoles;
 
 namespace MiniERP.WebAPI.Controllers
 {

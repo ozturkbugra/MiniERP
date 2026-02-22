@@ -2,7 +2,7 @@
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 
-namespace MiniERP.Application.Features.Auth.Commands;
+namespace MiniERP.Application.Features.Auth.Commands.LoginCommands;
 
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<string>>
 {

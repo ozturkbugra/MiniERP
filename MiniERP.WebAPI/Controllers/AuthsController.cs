@@ -1,10 +1,10 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.AssignRole.Commands;
-using MiniERP.Application.Features.Auth.Commands;
+using MiniERP.Application.Features.Auth.Commands.LoginCommands;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
+using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -46,6 +46,15 @@ namespace MiniERP.WebAPI.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("GetAll")]
+        [Authorize]
+        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
+            return Ok(response);
+        }
+
 
     }
 }

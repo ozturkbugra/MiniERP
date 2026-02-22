@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using MiniERP.Domain.Common;
 
-namespace MiniERP.Application.Features.Auth.Commands;
+namespace MiniERP.Application.Features.Auth.Commands.LoginCommands;
 
 // Giriş başarılı olursa dışarıya string (Token) döneceğiz, o yüzden Result<string> dedik.
 public sealed record LoginCommand(

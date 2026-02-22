@@ -1,9 +1,8 @@
 ﻿using MediatR;
-using MiniERP.Application.Features.Roles.Commands;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 
-namespace MiniERP.Application.Features.Roles.Commands.CreateUser;
+namespace MiniERP.Application.Features.Roles.Commands.CreateRoles;
 
 public sealed class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, Result>
 {

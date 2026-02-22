@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Persistence.IdentityModels;
@@ -36,6 +38,22 @@ public sealed class AuthService : IAuthService
 
         var errors = result.Errors.Select(e => e.Description);
         return Result.Failure("Rol atanırken bir hata oluştu.", errors);
+    }
+
+    public async Task<Result<List<GetAllUsersQueryResponse>>> GetAllUsersAsync(CancellationToken cancellationToken)
+    {
+        var users = await _userManager.Users
+            .Select(u => new GetAllUsersQueryResponse(
+                u.Id.ToString(),
+                u.FirstName,
+                u.LastName,
+                u.Email!,
+                u.UserName!,
+                true // İleride IsDeleted veya IsActive eklediğinde burayı bağlarız
+            ))
+            .ToListAsync(cancellationToken);
+
+        return Result<List<GetAllUsersQueryResponse>>.Success(users, "Kullanıcı listesi başarıyla getirildi.");
     }
 
     public async Task<Result<string>> LoginAsync(string email, string password)
