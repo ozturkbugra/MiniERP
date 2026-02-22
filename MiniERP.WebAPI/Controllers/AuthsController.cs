@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.AssignRole.Commands;
+using MiniERP.Application.Features.AssignRole.Commands.RemoveRoleFromUser;
 using MiniERP.Application.Features.Auth.Commands.LoginCommands;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
 using MiniERP.Application.Features.Users.Commands.DeleteUser;
@@ -34,6 +35,14 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> AssignRole(AssignRoleCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
+            return Ok(response);
+        }
+
+        [HttpDelete("remove-role")]
+        [Authorize]
+        public async Task<IActionResult> RemoveRoleFromUser(RemoveRoleFromUserCommand request)
+        {
+            var response = await _mediator.Send(request);
             return Ok(response);
         }
 

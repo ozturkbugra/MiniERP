@@ -42,6 +42,29 @@ public sealed class AuthService : IAuthService
         return Result.Failure("Rol atanırken bir hata oluştu.", errors);
     }
 
+
+    public async Task<Result<string>> RemoveRoleFromUserAsync(string userId, string roleName)
+    {
+        // 1. Kullanıcıyı bul
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+            return Result<string>.Failure("Kullanıcı bulunamadı.");
+
+        var isInRole = await _userManager.IsInRoleAsync(user, roleName);
+        if (!isInRole)
+            return Result<string>.Failure("Kullanıcı zaten bu role sahip değil.");
+
+        var result = await _userManager.RemoveFromRoleAsync(user, roleName);
+
+        if (result.Succeeded)
+        {
+            return Result<string>.Success(user.Id.ToString(), $"'{roleName}' rolü kullanıcıdan başarıyla silindi.");
+        }
+
+        return Result<string>.Failure("Rol çıkarılırken bir hata oluştu: " +
+            string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
     public async Task<Result<List<GetAllUsersQueryResponse>>> GetAllUsersAsync(CancellationToken cancellationToken)
     {
         var users = await _userManager.Users

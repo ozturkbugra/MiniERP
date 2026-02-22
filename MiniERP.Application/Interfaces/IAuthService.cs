@@ -11,6 +11,8 @@ public interface IAuthService
 
     Task<Result> AssignRoleAsync(string userId, string roleName);
 
+    Task<Result<string>> RemoveRoleFromUserAsync(string userId, string roleName);
+
     Task<Result<string>> LoginAsync(string email, string password);
 
     Task<Result<List<GetAllUsersQueryResponse>>> GetAllUsersAsync(CancellationToken cancellationToken);
