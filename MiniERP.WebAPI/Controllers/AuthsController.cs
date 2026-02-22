@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.AssignRole.Commands;
 using MiniERP.Application.Features.Auth.Commands.LoginCommands;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
+using MiniERP.Application.Features.Users.Commands.DeleteUser;
 using MiniERP.Application.Features.Users.Commands.UpdateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
@@ -70,6 +71,14 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> Update(UpdateUserCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
+            return Ok(response);
+        }
+
+        [HttpDelete("{id}")] 
+        [Authorize] 
+        public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new DeleteUserCommand(id), cancellationToken);
             return Ok(response);
         }
 

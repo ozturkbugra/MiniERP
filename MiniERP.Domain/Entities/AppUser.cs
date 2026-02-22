@@ -15,5 +15,7 @@ namespace MiniERP.Domain.Entities
         // JWT ve oturum yönetimi için
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
+        public bool IsDeleted { get; set; } = false;
+
     }
 }

@@ -18,4 +18,6 @@ public interface IAuthService
     Task<Result<GetUserByIdQueryResponse>> GetUserByIdAsync(string id, CancellationToken cancellationToken);
 
     Task<Result<string>> UpdateUserAsync(UpdateUserCommand request, CancellationToken cancellationToken);
+
+    Task<Result<string>> DeleteUserAsync(string id, CancellationToken cancellationToken);
 }

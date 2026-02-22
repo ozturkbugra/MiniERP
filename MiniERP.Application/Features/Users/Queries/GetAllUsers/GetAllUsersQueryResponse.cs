@@ -12,5 +12,5 @@ namespace MiniERP.Application.Features.Users.Queries.GetAllUsers
      string LastName,
      string Email,
      string UserName,
-     bool IsActive);
+     bool IsDeleted);
 }

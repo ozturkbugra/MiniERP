@@ -24,7 +24,7 @@ public sealed class AuthService : IAuthService
     {
         // 1. Kullanıcıyı bul
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
+        if (user == null || user.IsDeleted)
         {
             return Result.Failure("Kullanıcı bulunamadı.");
         }
@@ -45,13 +45,14 @@ public sealed class AuthService : IAuthService
     public async Task<Result<List<GetAllUsersQueryResponse>>> GetAllUsersAsync(CancellationToken cancellationToken)
     {
         var users = await _userManager.Users
+            .Where(u => !u.IsDeleted)
             .Select(u => new GetAllUsersQueryResponse(
                 u.Id.ToString(),
                 u.FirstName,
                 u.LastName,
                 u.Email!,
                 u.UserName!,
-                true // İleride IsDeleted veya IsActive eklediğinde burayı bağlarız
+                !u.IsDeleted
             ))
             .ToListAsync(cancellationToken);
 
@@ -62,7 +63,7 @@ public sealed class AuthService : IAuthService
     {
         var user = await _userManager.FindByIdAsync(id);
 
-        if (user is null)
+        if (user is null || user.IsDeleted)
             return Result<GetUserByIdQueryResponse>.Failure("Kullanıcı bulunamadı.");
 
         var response = new GetUserByIdQueryResponse(
@@ -71,36 +72,31 @@ public sealed class AuthService : IAuthService
             user.LastName,
             user.Email!,
             user.UserName!,
-            true);
+            !user.IsDeleted);
 
-        return Result<GetUserByIdQueryResponse>.Success(response,"Kullanıcı bilgileri başarıyla getirildi.");
+        return Result<GetUserByIdQueryResponse>.Success(response, "Kullanıcı bilgileri başarıyla getirildi.");
     }
 
     public async Task<Result<string>> LoginAsync(string email, string password)
     {
-        // 1. Kullanıcıyı bul
         var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
+        if (user == null || user.IsDeleted)
         {
             return Result<string>.Failure("Kullanıcı bulunamadı veya şifre hatalı.");
         }
 
-        // 2. Şifreyi kontrol et
         var isPasswordCorrect = await _userManager.CheckPasswordAsync(user, password);
         if (!isPasswordCorrect)
         {
             return Result<string>.Failure("Kullanıcı bulunamadı veya şifre hatalı.");
         }
 
-        // 3. Rolleri al
         var roles = await _userManager.GetRolesAsync(user);
-
-        // 4. Token üret
         var token = await _jwtProvider.CreateTokenAsync(user.Id.ToString(), user.Email!, roles);
 
         return Result<string>.Success(token, "Giriş başarılı!");
     }
-    
+
 
     public async Task<Result> RegisterAsync(string firstName, string lastName, string email, string password)
     {
@@ -132,7 +128,7 @@ public sealed class AuthService : IAuthService
     {
         var user = await _userManager.FindByIdAsync(request.Id);
 
-        if (user is null)
+        if (user is null || user.IsDeleted)
             return Result<string>.Failure("Kullanıcı bulunamadı.");
 
         user.FirstName = request.FirstName;
@@ -145,6 +141,25 @@ public sealed class AuthService : IAuthService
         if (result.Succeeded)
         {
             return Result<string>.Success(user.Id.ToString(), "Kullanıcı bilgileri başarıyla güncellendi.");
+        }
+
+        return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
+    public async Task<Result<string>> DeleteUserAsync(string id, CancellationToken cancellationToken)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+
+        if (user is null || user.IsDeleted) 
+            return Result<string>.Failure("Kullanıcı bulunamadı.");
+
+        user.IsDeleted = true;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (result.Succeeded)
+        {
+            return Result<string>.Success(user.Id.ToString(), "Kullanıcı başarıyla pasife çekildi (Soft Delete).");
         }
 
         return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));

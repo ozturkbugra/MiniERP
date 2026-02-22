@@ -6,4 +6,4 @@ public sealed record GetUserByIdQueryResponse(
     string LastName,
     string Email,
     string UserName,
-    bool IsActive);
+    bool IsDeleted);
