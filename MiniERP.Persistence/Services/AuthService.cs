@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Application.Features.Users.Commands.ChangePassword;
 using MiniERP.Application.Features.Users.Commands.UpdateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
@@ -190,5 +191,23 @@ public sealed class AuthService : IAuthService
         }
 
         return Result<string>.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
+
+    public async Task<Result<string>> ChangePasswordAsync(ChangePasswordCommand request, CancellationToken cancellationToken)
+    {
+        var user = await _userManager.FindByIdAsync(request.UserId);
+        if (user is null || user.IsDeleted)
+            return Result<string>.Failure("Kullanıcı bulunamadı.");
+
+        var result = await _userManager.ChangePasswordAsync(user, request.OldPassword, request.NewPassword);
+
+        if (result.Succeeded)
+        {
+            return Result<string>.Success(user.Id.ToString(), "Şifre başarıyla değiştirildi.");
+        }
+
+        return Result<string>.Failure("Şifre değiştirilemedi: " +
+            string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 }

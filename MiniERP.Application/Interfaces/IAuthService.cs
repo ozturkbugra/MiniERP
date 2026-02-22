@@ -1,4 +1,5 @@
-﻿using MiniERP.Application.Features.Users.Commands.UpdateUser;
+﻿using MiniERP.Application.Features.Users.Commands.ChangePassword;
+using MiniERP.Application.Features.Users.Commands.UpdateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
 using MiniERP.Domain.Common;
@@ -22,4 +23,6 @@ public interface IAuthService
     Task<Result<string>> UpdateUserAsync(UpdateUserCommand request, CancellationToken cancellationToken);
 
     Task<Result<string>> DeleteUserAsync(string id, CancellationToken cancellationToken);
+
+    Task<Result<string>> ChangePasswordAsync(ChangePasswordCommand request, CancellationToken cancellationToken);
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.AssignRole.Commands;
 using MiniERP.Application.Features.AssignRole.Commands.RemoveRoleFromUser;
 using MiniERP.Application.Features.Auth.Commands.LoginCommands;
+using MiniERP.Application.Features.Users.Commands.ChangePassword;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
 using MiniERP.Application.Features.Users.Commands.DeleteUser;
 using MiniERP.Application.Features.Users.Commands.UpdateUser;
@@ -88,6 +89,14 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new DeleteUserCommand(id), cancellationToken);
+            return Ok(response);
+        }
+
+        [HttpPost("change-password")]
+        [Authorize] 
+        public async Task<IActionResult> ChangePassword(ChangePasswordCommand request)
+        {
+            var response = await _mediator.Send(request);
             return Ok(response);
         }
 
