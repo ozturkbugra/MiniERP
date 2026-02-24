@@ -5,6 +5,7 @@ using MiniERP.Application.Features.Customer.Commands.CreateCustomer;
 using MiniERP.Application.Features.Customer.Commands.DeleteCustomer;
 using MiniERP.Application.Features.Customer.Commands.UpdateCustomer;
 using MiniERP.Application.Features.Customer.Queries.GetAllCustomers;
+using MiniERP.Application.Features.Customer.Queries.GetCustomerById;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -23,6 +24,13 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> GetAll()
         {
             var result = await _mediator.Send(new GetAllCustomersQuery());
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var result = await _mediator.Send(new GetCustomerByIdQuery(id));
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
 
