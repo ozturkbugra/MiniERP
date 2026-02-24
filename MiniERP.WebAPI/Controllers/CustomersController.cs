@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Customer.Commands.CreateCustomer;
 using MiniERP.Application.Features.Customer.Commands.DeleteCustomer;
 using MiniERP.Application.Features.Customer.Commands.UpdateCustomer;
+using MiniERP.Application.Features.Customer.Queries.GetAllCustomers;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -16,6 +17,13 @@ namespace MiniERP.WebAPI.Controllers
         public CustomersController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var result = await _mediator.Send(new GetAllCustomersQuery());
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
 
         [HttpPost]

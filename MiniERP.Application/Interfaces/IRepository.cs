@@ -12,4 +12,5 @@ public interface IRepository<T> where T : BaseEntity
     void Delete(T entity);
 
     Task<bool> AnyAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default);
+    Task<List<T>> GetAllAsync(CancellationToken cancellationToken = default); // Doğrudan liste dönen metod
 }
