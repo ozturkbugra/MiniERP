@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using MiniERP.Application.Behaviors;
+using System.Reflection;
 
 namespace MiniERP.Application;
 
@@ -20,5 +21,7 @@ public static class ServiceRegistration
 
         // Bu satır, projedeki tüm AbstractValidator'ları (CreateUserCommandValidator vb.) otomatik bulup sisteme tanıtır.
         services.AddValidatorsFromAssembly(typeof(ServiceRegistration).Assembly);
+
+        services.AddAutoMapper(Assembly.GetExecutingAssembly());
     }
 }

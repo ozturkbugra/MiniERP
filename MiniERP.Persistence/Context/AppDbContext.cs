@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Domain.Entities;
 using MiniERP.Persistence.IdentityModels;
+using System.Reflection;
 
 namespace MiniERP.Persistence.Context;
 
@@ -10,12 +12,13 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     {
     }
 
+    public DbSet<Customer> Customers { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // Identity tablolarının (AspNetUsers vb.) oluşması için
         base.OnModelCreating(builder);
 
-        // İleride kendi Domain sınıflarımızı (Örn: Products) buraya DbSet olarak eklediğimizde,
-        // Fluent API ayarlarını burada yapacağız.
+        // Yazdığımız tüm IEntityTypeConfiguration sınıflarını otomatik uygula
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }
 }
