@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MiniERP.Application.Features.Customer.Commands.CreateCustomer;
+using MiniERP.Application.Features.Customer.Commands.UpdateCustomer;
 using MiniERP.Domain.Entities;
 
 namespace MiniERP.Application.Mappings
@@ -9,6 +10,7 @@ namespace MiniERP.Application.Mappings
         public CustomerProfile()
         {
             CreateMap<CreateCustomerCommand, Customer>();
+            CreateMap<UpdateCustomerCommand, Customer>();
         }
     }
 }
