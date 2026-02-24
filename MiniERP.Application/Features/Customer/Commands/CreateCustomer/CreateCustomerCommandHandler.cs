@@ -2,12 +2,6 @@
 using MediatR;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
-using MiniERP.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CustomerEntity = MiniERP.Domain.Entities.Customer;
 
 namespace MiniERP.Application.Features.Customer.Commands.CreateCustomer
@@ -30,10 +24,16 @@ namespace MiniERP.Application.Features.Customer.Commands.CreateCustomer
 
         public async Task<Result<string>> Handle(CreateCustomerCommand request, CancellationToken cancellationToken)
         {
-           var customer = _mapper.Map<CustomerEntity>(request);
+            var isNameExists = await _customerRepository.AnyAsync(x => x.Name.ToLower() == request.Name.ToLower(), cancellationToken);
 
-           await _customerRepository.AddAsync(customer, cancellationToken);
-           await _unitOfWork.SaveChangesAsync(cancellationToken);
+            if (isNameExists)
+            {
+                return Result<string>.Failure("Bu isimde bir cari kart zaten mevcut.");
+            }
+
+            var customer = _mapper.Map<CustomerEntity>(request);
+            await _customerRepository.AddAsync(customer, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result<string>.Success(customer.Name, "Cari kart başarıyla oluşturuldu.");
         }

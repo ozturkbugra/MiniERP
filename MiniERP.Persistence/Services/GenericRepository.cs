@@ -5,6 +5,7 @@ using MiniERP.Persistence.Context;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +34,11 @@ namespace MiniERP.Persistence.Services
 
         public void Delete(T entity) => _dbSet.Remove(entity);
 
-      
+        public async Task<bool> AnyAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet.AnyAsync(expression, cancellationToken);
+        }
+
+
     }
 }

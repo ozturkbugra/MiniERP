@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Customer.Commands.CreateCustomer;
+using MiniERP.Application.Features.Customer.Commands.DeleteCustomer;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -20,6 +21,13 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> Create(CreateCustomerCommand command)
         {
             var result = await _mediator.Send(command);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _mediator.Send(new DeleteCustomerCommand(id));
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
     }
