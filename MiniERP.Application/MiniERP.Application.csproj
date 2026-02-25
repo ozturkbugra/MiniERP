@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Bank\" />
+    <Folder Include="Features\Banks\Queries\" />
   </ItemGroup>
 
 </Project>
