@@ -3,5 +3,7 @@
     public sealed record CashByIdResponse(
     Guid Id,
     string Name,
-    string CurrencyType);
+    string CurrencyType,
+    string? CreatedByName,
+    string? UpdatedByName);
 }
