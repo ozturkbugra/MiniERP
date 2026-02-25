@@ -8,5 +8,8 @@
 
         // Soft Delete 
         public bool IsDeleted { get; set; } = false;
+
+        public string? CreatedBy { get; set; } // Kaydı oluşturan kullanıcının ID'si
+        public string? UpdatedBy { get; set; } // Son güncelleyen kullanıcının ID'si
     }
 }

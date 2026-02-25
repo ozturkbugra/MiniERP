@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Banks.Commands.CreateBank;
@@ -11,6 +12,7 @@ namespace MiniERP.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BanksController : ControllerBase
     {
         private readonly IMediator _mediator;

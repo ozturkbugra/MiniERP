@@ -6,5 +6,8 @@
      string AccountName,
      string IBAN,
      string? BranchName,
-     string CurrencyType);
+     string CurrencyType,
+     string? CreatedByName,
+     string? UpdatedByName
+     );
 }

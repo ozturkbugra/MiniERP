@@ -33,5 +33,6 @@ public static class ServiceRegistration
         services.AddScoped<IJwtProvider, JwtProvider>();
         services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IAppUserService, AppUserService>();
     }
 }

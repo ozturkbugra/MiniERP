@@ -12,8 +12,6 @@ namespace MiniERP.Application.Mappings
         {
             CreateMap<CreateBankCommand, Bank>();
             CreateMap<UpdateBankCommand, Bank>();
-            CreateMap<Bank, BankResponse>()
-                .ForMember(dest => dest.CurrencyType, opt => opt.MapFrom(src => src.CurrencyType.ToString()));
         }
     }
 }
