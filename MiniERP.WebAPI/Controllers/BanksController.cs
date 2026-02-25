@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Banks.Commands.CreateBank;
 using MiniERP.Application.Features.Banks.Commands.DeleteBank;
 using MiniERP.Application.Features.Banks.Commands.UpdateBank;
+using MiniERP.Application.Features.Banks.Queries.GetAllBanks;
+using MiniERP.Application.Features.Banks.Queries.GetBankById;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -16,6 +18,20 @@ namespace MiniERP.WebAPI.Controllers
         public BanksController(IMediator mediator)
         {
             _mediator = mediator;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var response = await _mediator.Send(new GetAllBanksQuery());
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var response = await _mediator.Send(new GetBankByIdQuery(id));
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
 
         [HttpPost]
@@ -43,5 +59,7 @@ namespace MiniERP.WebAPI.Controllers
             var response = await _mediator.Send(new DeleteBankCommand(id));
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
+
+
     }
 }

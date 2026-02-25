@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MiniERP.Application.Features.Banks.Commands.CreateBank;
 using MiniERP.Application.Features.Banks.Commands.UpdateBank;
+using MiniERP.Application.Features.Banks.Queries;
 using MiniERP.Domain.Entities;
 
 namespace MiniERP.Application.Mappings
@@ -11,6 +12,8 @@ namespace MiniERP.Application.Mappings
         {
             CreateMap<CreateBankCommand, Bank>();
             CreateMap<UpdateBankCommand, Bank>();
+            CreateMap<Bank, BankResponse>()
+                .ForMember(dest => dest.CurrencyType, opt => opt.MapFrom(src => src.CurrencyType.ToString()));
         }
     }
 }
