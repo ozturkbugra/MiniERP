@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Banks.Commands.CreateBank;
+using MiniERP.Application.Features.Banks.Commands.DeleteBank;
 using MiniERP.Application.Features.Banks.Commands.UpdateBank;
 
 namespace MiniERP.WebAPI.Controllers
@@ -33,6 +34,13 @@ namespace MiniERP.WebAPI.Controllers
             }
 
             var response = await _mediator.Send(command);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var response = await _mediator.Send(new DeleteBankCommand(id));
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
     }
