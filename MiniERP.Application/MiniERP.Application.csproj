@@ -17,4 +17,8 @@
     <ProjectReference Include="..\MiniERP.Domain\MiniERP.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\Bank\" />
+  </ItemGroup>
+
 </Project>

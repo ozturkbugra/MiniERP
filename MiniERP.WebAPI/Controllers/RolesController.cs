@@ -44,12 +44,19 @@ namespace MiniERP.WebAPI.Controllers
             return Ok(response);
         }
 
-        [HttpPut]
+        [HttpPut("{id}")] 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(UpdateRoleCommand request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(Guid id, UpdateRoleCommand request, CancellationToken cancellationToken)
         {
+            if (id.ToString() != request.Id)
+            {
+                return BadRequest("URL'deki ID ile gönderilen verideki ID uyuşmuyor.");
+            }
+
             var response = await _mediator.Send(request, cancellationToken);
-            return Ok(response);
+
+            // Result<T> yapımıza uygun olarak sonucu dönüyoruz
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
 
         [HttpDelete("{id}")]

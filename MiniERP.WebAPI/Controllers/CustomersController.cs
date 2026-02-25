@@ -48,10 +48,16 @@ namespace MiniERP.WebAPI.Controllers
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
 
-        [HttpPut]
-        public async Task<IActionResult> Update(UpdateCustomerCommand command)
+        [HttpPut("{id}")] 
+        public async Task<IActionResult> Update(Guid id, UpdateCustomerCommand command)
         {
+            if (id != command.Id)
+            {
+                return BadRequest(new { Message = "URL'deki ID ile gönderilen verideki ID uyuşmuyor." });
+            }
+
             var result = await _mediator.Send(command);
+
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
     }

@@ -77,12 +77,18 @@ namespace MiniERP.WebAPI.Controllers
             return Ok(response);
         }
 
-        [HttpPut]
+        [HttpPut("{id}")]
         [Authorize]
-        public async Task<IActionResult> Update(UpdateUserCommand request, CancellationToken cancellationToken)
+        public async Task<IActionResult> Update(Guid id, UpdateUserCommand request, CancellationToken cancellationToken)
         {
+            if (id.ToString() != request.Id)
+            {
+                return BadRequest("URL'deki ID ile gönderilen kullanıcı verisindeki ID uyuşmuyor.");
+            }
+
             var response = await _mediator.Send(request, cancellationToken);
-            return Ok(response);
+
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
 
         [HttpDelete("{id}")] 
