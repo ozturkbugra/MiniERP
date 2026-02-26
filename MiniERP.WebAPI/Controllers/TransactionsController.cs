@@ -1,6 +1,6 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MiniERP.Application.Features.Transactions.Commands.CreateCollection;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -15,6 +15,12 @@ namespace MiniERP.WebAPI.Controllers
             _mediator = mediator;
         }
 
-       
+        // Tahsilat (Müşteriden Para Alma)
+        [HttpPost("Collection")]
+        public async Task<IActionResult> Collection(CreateCollectionCommand command, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(command, cancellationToken);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
     }
 }
