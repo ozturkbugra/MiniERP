@@ -7,6 +7,7 @@ using MiniERP.Application.Features.Transactions.Commands.MakePayment;
 using MiniERP.Application.Features.Transactions.Commands.TransferMoney;
 using MiniERP.Application.Features.Transactions.Queries.GetBankStatement;
 using MiniERP.Application.Features.Transactions.Queries.GetCashStatement;
+using MiniERP.Application.Features.Transactions.Queries.GetCustomerListWithBalance;
 using MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement;
 
 namespace MiniERP.WebAPI.Controllers
@@ -101,6 +102,13 @@ namespace MiniERP.WebAPI.Controllers
         {
             var result = await _mediator.Send(new GetCashStatementQuery(cashId), cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("CustomerBalances")]
+        public async Task<IActionResult> GetCustomerBalances(CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetCustomerListWithBalanceQuery(), cancellationToken);
+            return Ok(result);
         }
     }
 }
