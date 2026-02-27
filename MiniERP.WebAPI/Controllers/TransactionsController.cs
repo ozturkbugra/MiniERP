@@ -6,6 +6,7 @@ using MiniERP.Application.Features.Transactions.Commands.CreateCollection;
 using MiniERP.Application.Features.Transactions.Commands.MakePayment;
 using MiniERP.Application.Features.Transactions.Commands.TransferMoney;
 using MiniERP.Application.Features.Transactions.Queries.GetBankStatement;
+using MiniERP.Application.Features.Transactions.Queries.GetCashStatement;
 using MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement;
 
 namespace MiniERP.WebAPI.Controllers
@@ -92,6 +93,13 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> GetBankStatement(Guid bankId, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new GetBankStatementQuery(bankId), cancellationToken);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("CashStatement/{cashId}")]
+        public async Task<IActionResult> GetCashStatement(Guid cashId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new GetCashStatementQuery(cashId), cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
     }
