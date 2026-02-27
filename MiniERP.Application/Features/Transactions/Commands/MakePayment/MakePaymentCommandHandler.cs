@@ -3,11 +3,6 @@ using MediatR;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Transactions.Commands.MakePayment
 {
