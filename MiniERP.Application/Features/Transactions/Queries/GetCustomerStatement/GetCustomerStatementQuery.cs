@@ -8,5 +8,5 @@ using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
 {
-    public sealed record GetCustomerStatementQuery(Guid CustomerId) : IRequest<Result<List<CustomerStatementDto>>>;
+    public sealed record GetCustomerStatementQuery(Guid CustomerId) : IRequest<Result<List<CustomerStatementResponse>>>;
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
 {
-    public sealed record CustomerStatementDto(
+    public sealed record CustomerStatementResponse(
     Guid TransactionId,
     DateTime Date,
     string Description,

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
 {
-    public sealed class GetCustomerStatementQueryHandler : IRequestHandler<GetCustomerStatementQuery, Result<List<CustomerStatementDto>>>
+    public sealed class GetCustomerStatementQueryHandler : IRequestHandler<GetCustomerStatementQuery, Result<List<CustomerStatementResponse>>>
     {
         private readonly IRepository<CustomerTransaction> _customerTransactionRepository;
 
@@ -20,7 +20,7 @@ namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
             _customerTransactionRepository = customerTransactionRepository;
         }
 
-        public async Task<Result<List<CustomerStatementDto>>> Handle(GetCustomerStatementQuery request, CancellationToken cancellationToken)
+        public async Task<Result<List<CustomerStatementResponse>>> Handle(GetCustomerStatementQuery request, CancellationToken cancellationToken)
         {
             // 1. Müşterinin tüm geçerli (silinmemiş) hareketlerini tarihe göre getir
             var query = _customerTransactionRepository.GetAll()
@@ -28,7 +28,7 @@ namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
             .OrderBy(x => x.Date);
             var transactions = await _customerTransactionRepository.ToListAsync(query, cancellationToken);
 
-            var result = new List<CustomerStatementDto>();
+            var result = new List<CustomerStatementResponse>();
             decimal runningBalance = 0;
 
             // 2. Yürüyen bakiye hesabı
@@ -36,7 +36,7 @@ namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
             {
                 runningBalance += (tx.Debit - tx.Credit); // Borç bakiyeyi artırır, alacak azaltır
 
-                result.Add(new CustomerStatementDto
+                result.Add(new CustomerStatementResponse
                 (
                     tx.TransactionId,
                     tx.Date,
@@ -47,7 +47,7 @@ namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
                 ));
             }
 
-            return Result<List<CustomerStatementDto>>.Success(result, "Cari Ekstresi Başarılı Bir Şekilde Getirildi.");
+            return Result<List<CustomerStatementResponse>>.Success(result, "Cari Ekstresi Başarılı Bir Şekilde Getirildi.");
         }
     }
 }
