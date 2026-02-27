@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Transactions.Commands.CreateCollection;
+using MiniERP.Application.Features.Transactions.Commands.DeleteCollection;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -20,6 +21,13 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> Collection(CreateCollectionCommand command, CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(command, cancellationToken);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpDelete("Collection/{transactionId}")]
+        public async Task<IActionResult> DeleteCollection(Guid transactionId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new DeleteCollectionCommand(transactionId), cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
     }

@@ -43,5 +43,15 @@ namespace MiniERP.Persistence.Services
             return await _dbSet.ToListAsync(cancellationToken);
         }
 
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            _dbSet.UpdateRange(entities); // İşte EF Core'un gücü burada devreye giriyor
+        }
+
+        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
+        {
+            return await _dbSet.Where(expression).ToListAsync(cancellationToken);
+        }
+
     }
 }
