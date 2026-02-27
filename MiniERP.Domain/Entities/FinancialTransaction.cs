@@ -4,6 +4,7 @@ namespace MiniERP.Domain.Entities
 {
     public abstract class FinancialTransaction : BaseEntity
     {
+        public Guid TransactionId { get; set; }
         public decimal Debit { get; set; }  // Borç Girişi
         public decimal Credit { get; set; } // Alacak Girişi
         public string Description { get; set; } = string.Empty;

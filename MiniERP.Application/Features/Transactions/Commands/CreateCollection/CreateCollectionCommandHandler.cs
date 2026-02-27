@@ -39,19 +39,24 @@ namespace MiniERP.Application.Features.Transactions.Commands.CreateCollection
             if (request.Amount <= 0) return Result<string>.Failure("Tahsilat tutarı sıfırdan büyük olmalıdır.");
             if (request.CashId is null && request.BankId is null) return Result<string>.Failure("Kasa veya Banka seçilmelidir.");
 
+            var sharedTransactionId = Guid.NewGuid();
+
             // 2. Müşteri Hareketini Map'le ve Ekle
             var customerTransaction = _mapper.Map<CustomerTransaction>(request);
+            customerTransaction.TransactionId = sharedTransactionId; 
             await _customerTransactionRepository.AddAsync(customerTransaction, cancellationToken);
 
             // 3. Kasa veya Banka Hareketini Map'le ve Ekle
             if (request.CashId is not null)
             {
                 var cashTransaction = _mapper.Map<CashTransaction>(request);
+                cashTransaction.TransactionId = sharedTransactionId;
                 await _cashTransactionRepository.AddAsync(cashTransaction, cancellationToken);
             }
             else if (request.BankId is not null)
             {
                 var bankTransaction = _mapper.Map<BankTransaction>(request);
+                bankTransaction.TransactionId = sharedTransactionId;
                 await _bankTransactionRepository.AddAsync(bankTransaction, cancellationToken);
             }
 
