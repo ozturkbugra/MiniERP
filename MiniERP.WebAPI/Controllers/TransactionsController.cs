@@ -5,6 +5,7 @@ using MiniERP.Application.Features.Transactions.Commands.CancelTransaction;
 using MiniERP.Application.Features.Transactions.Commands.CreateCollection;
 using MiniERP.Application.Features.Transactions.Commands.MakePayment;
 using MiniERP.Application.Features.Transactions.Commands.TransferMoney;
+using MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -77,6 +78,13 @@ namespace MiniERP.WebAPI.Controllers
         {
             var result = await _mediator.Send(new CancelTransactionCommand(transactionId), cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpGet("CustomerStatement/{customerId}")]
+        public async Task<IActionResult> GetCustomerStatement(Guid customerId, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new GetCustomerStatementQuery(customerId), cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
     }
 }

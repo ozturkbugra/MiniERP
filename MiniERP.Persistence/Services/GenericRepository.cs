@@ -53,5 +53,10 @@ namespace MiniERP.Persistence.Services
             return await _dbSet.Where(expression).ToListAsync(cancellationToken);
         }
 
+        public async Task<List<T>> ToListAsync(IQueryable<T> query, CancellationToken cancellationToken = default)
+        {
+            return await query.ToListAsync(cancellationToken);
+        }
+
     }
 }
