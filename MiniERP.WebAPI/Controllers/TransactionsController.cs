@@ -1,7 +1,9 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using MiniERP.Application.Features.Transactions.Commands.CancelTransaction;
 using MiniERP.Application.Features.Transactions.Commands.CreateCollection;
 using MiniERP.Application.Features.Transactions.Commands.DeleteCollection;
+using MiniERP.Application.Features.Transactions.Commands.MakePayment;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -27,7 +29,22 @@ namespace MiniERP.WebAPI.Controllers
         [HttpDelete("Collection/{transactionId}")]
         public async Task<IActionResult> DeleteCollection(Guid transactionId, CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(new DeleteCollectionCommand(transactionId), cancellationToken);
+            var result = await _mediator.Send(new CancelTransactionCommand(transactionId), cancellationToken);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        // Ödeme İptali İçin (İkisi de aynı yere gidiyor!)
+        [HttpDelete("Payment/{transactionId}")]
+        public async Task<IActionResult> DeletePayment(Guid transactionId, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new CancelTransactionCommand(transactionId), cancellationToken);
+            return result.IsSuccess ? Ok(result) : BadRequest(result);
+        }
+
+        [HttpPost("Payment")]
+        public async Task<IActionResult> Payment(MakePaymentCommand command, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(command, cancellationToken);
             return result.IsSuccess ? Ok(result) : BadRequest(result);
         }
     }

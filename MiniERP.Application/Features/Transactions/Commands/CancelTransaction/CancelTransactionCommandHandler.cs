@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using MiniERP.Application.Features.Transactions.Commands.CancelTransaction;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
@@ -10,14 +11,14 @@ using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Transactions.Commands.DeleteCollection
 {
-    public sealed class DeleteCollectionCommandHandler : IRequestHandler<DeleteCollectionCommand, Result<string>>
+    public sealed class CancelTransactionCommandHandler : IRequestHandler<CancelTransactionCommand, Result<string>>
     {
         private readonly IRepository<CustomerTransaction> _customerTransactionRepository;
         private readonly IRepository<CashTransaction> _cashTransactionRepository;
         private readonly IRepository<BankTransaction> _bankTransactionRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public DeleteCollectionCommandHandler(
+        public CancelTransactionCommandHandler(
             IRepository<CustomerTransaction> customerTransactionRepository,
             IRepository<CashTransaction> cashTransactionRepository,
             IRepository<BankTransaction> bankTransactionRepository,
@@ -29,7 +30,7 @@ namespace MiniERP.Application.Features.Transactions.Commands.DeleteCollection
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Result<string>> Handle(DeleteCollectionCommand request, CancellationToken cancellationToken)
+        public async Task<Result<string>> Handle(CancelTransactionCommand request, CancellationToken cancellationToken)
         {
             // 1. TransactionId'ye sahip tüm parçaları farklı tablolardan topla
             var customerEntries = await _customerTransactionRepository.GetAllAsync(x => x.TransactionId == request.TransactionId, cancellationToken);
