@@ -26,6 +26,12 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     public DbSet<CashTransaction> CashTransactions { get; set; }
     public DbSet<BankTransaction> BankTransactions { get; set; }
     public DbSet<CustomerTransaction> CustomerTransactions { get; set; }
+    public DbSet<Product> Products { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<Brand> Brands { get; set; }
+    public DbSet<Unit> Units { get; set; }
+    public DbSet<Warehouse> Warehouses { get; set; }
+    public DbSet<StockTransaction> StockTransactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
