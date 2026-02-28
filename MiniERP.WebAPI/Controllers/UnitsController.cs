@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Units.Commands.CreateUnit;
 using MiniERP.Application.Features.Units.Commands.DeleteUnit;
@@ -10,6 +11,7 @@ namespace MiniERP.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UnitsController : ControllerBase
     {
         private readonly IMediator _mediator;
