@@ -58,5 +58,28 @@ namespace MiniERP.Persistence.Services
             return await query.ToListAsync(cancellationToken);
         }
 
+        public async Task<List<T>> GetAllAsync(CancellationToken cancellationToken, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (includes != null)
+            {
+                query = includes.Aggregate(query, (current, include) => current.Include(include));
+            }
+
+            return await query.ToListAsync(cancellationToken);
+        }
+
+        public async Task<T?> GetByIdAsync(Guid id,CancellationToken cancellationToken,params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet;
+
+            if (includes != null)
+            {
+                query = includes.Aggregate(query, (current, include) => current.Include(include));
+            }
+
+            return await query.FirstOrDefaultAsync(x => EF.Property<Guid>(x, "Id") == id, cancellationToken);
+        }
     }
 }

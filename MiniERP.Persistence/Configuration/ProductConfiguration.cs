@@ -9,6 +9,7 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Code).HasMaxLength(30).IsRequired();
         builder.Property(p => p.Name).HasMaxLength(150).IsRequired();
         builder.Property(p => p.Barcode).HasMaxLength(50);
+        builder.HasQueryFilter(p => !p.IsDeleted);
 
         // Sayısal Alanlar (Decimal 18,2)
         builder.Property(p => p.DefaultPrice).HasPrecision(18, 2);
