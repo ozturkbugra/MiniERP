@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.StockTransactions.Commands;
 using MiniERP.Application.Features.StockTransactions.Queries.GetAllStockTransactions;
+using MiniERP.Application.Features.StockTransactions.Queries.GetStockTransactions;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -30,6 +31,13 @@ namespace MiniERP.WebAPI.Controllers
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
 
-       
+        [HttpGet("GetTransaction")]
+        public async Task<IActionResult> GetTransaction([FromQuery] GetStockTransactionsQuery query, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(query, cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+
     }
 }
