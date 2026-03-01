@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using MiniERP.Application.Features.StockTransactions.Commands;
+using MiniERP.Application.Features.StockTransactions.Commands.CreateStockTransaction;
 using MiniERP.Application.Features.StockTransactions.Queries.GetAllStockTransactions;
 using MiniERP.Application.Features.StockTransactions.Queries.GetStockTransactions;
 
@@ -25,7 +25,7 @@ namespace MiniERP.WebAPI.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateStockTransactionCommand command, CancellationToken cancellationToken)
+        public async Task<IActionResult> Create([FromBody] CreateStockTransactionCommand command, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(command, cancellationToken);
             return response.IsSuccess ? Ok(response) : BadRequest(response);

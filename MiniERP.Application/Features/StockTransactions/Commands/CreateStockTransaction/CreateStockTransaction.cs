@@ -1,13 +1,8 @@
 ﻿using MediatR;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace MiniERP.Application.Features.StockTransactions.Commands
+namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTransaction
 {
     public sealed record CreateStockTransactionCommand(
     string DocumentNo,
@@ -15,8 +10,12 @@ namespace MiniERP.Application.Features.StockTransactions.Commands
     decimal Quantity,
     decimal UnitPrice,
     string? Description,
-    StockTransactionType Type, // 1: Giriş, 2: Çıkış
+    StockTransactionType Type, // In (Giriş) - Out (Çıkış)
     Guid ProductId,
     Guid WarehouseId,
-    Guid CustomerId) : IRequest<Result<string>>;
+    Guid CustomerId,
+    PaymentType PaymentType,
+    Guid? CashId,
+    Guid? BankId
+) : IRequest<Result<string>>;
 }

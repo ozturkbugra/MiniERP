@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using MiniERP.Application.Features.StockTransactions.Commands;
+using MiniERP.Application.Features.StockTransactions.Commands.CreateStockTransaction;
 using MiniERP.Application.Features.StockTransactions.Queries.GetAllStockTransactions;
 using MiniERP.Domain.Entities;
 using System;
