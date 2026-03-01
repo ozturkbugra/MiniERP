@@ -22,8 +22,7 @@ namespace MiniERP.Application.Features.Products.Queries.GetProductById
             var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken,
                 p => p.Category,
                 p => p.Brand,
-                p => p.Unit,
-                p => p.Warehouse);
+                p => p.Unit);
 
             if (product is null)
                 return Result<GetProductByIdResponse>.Failure("Ürün bulunamadı.");

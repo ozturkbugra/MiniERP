@@ -13,7 +13,6 @@ namespace MiniERP.Application.Features.Products.Commands.UpdateProduct
         private readonly IRepository<Category> _categoryRepository;
         private readonly IRepository<Brand> _brandRepository;
         private readonly IRepository<UnitEntity> _unitRepository;
-        private readonly IRepository<Warehouse> _warehouseRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
@@ -30,7 +29,6 @@ namespace MiniERP.Application.Features.Products.Commands.UpdateProduct
             _categoryRepository = categoryRepository;
             _brandRepository = brandRepository;
             _unitRepository = unitRepository;
-            _warehouseRepository = warehouseRepository;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
@@ -63,8 +61,6 @@ namespace MiniERP.Application.Features.Products.Commands.UpdateProduct
             if (!await _unitRepository.AnyAsync(x => x.Id == request.UnitId, cancellationToken))
                 return Result<string>.Failure("Seçilen birim geçersiz.");
 
-            if (!await _warehouseRepository.AnyAsync(x => x.Id == request.WarehouseId, cancellationToken))
-                return Result<string>.Failure("Seçilen depo geçersiz.");
 
             // 3. Mapping ve Kayıt
             _mapper.Map(request, product);

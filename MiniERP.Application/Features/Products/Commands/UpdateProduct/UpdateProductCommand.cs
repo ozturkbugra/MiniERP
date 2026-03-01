@@ -13,6 +13,5 @@ namespace MiniERP.Application.Features.Products.Commands.UpdateProduct
     decimal VatRate,
     Guid CategoryId,
     Guid BrandId,
-    Guid UnitId,
-    Guid WarehouseId) : IRequest<Result<string>>;
+    Guid UnitId) : IRequest<Result<string>>;
 }

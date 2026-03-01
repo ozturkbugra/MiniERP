@@ -8,7 +8,6 @@
     string CategoryName,
     string BrandName,
     string UnitName,
-    string WarehouseName,
     decimal DefaultPrice,
     decimal CriticalStockLevel,
     decimal VatRate);

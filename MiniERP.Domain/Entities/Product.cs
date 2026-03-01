@@ -21,8 +21,5 @@ namespace MiniERP.Domain.Entities
 
         public Guid UnitId { get; set; }
         public Unit Unit { get; set; }
-
-        public Guid WarehouseId { get; set; }
-        public Warehouse Warehouse { get; set; }
     }
 }

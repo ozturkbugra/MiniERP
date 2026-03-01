@@ -22,8 +22,7 @@ namespace MiniERP.Application.Features.Products.Queries.GetAllProducts
             var products = await _productRepository.GetAllAsync(cancellationToken,
                 p => p.Category,
                 p => p.Brand,
-                p => p.Unit,
-                p => p.Warehouse);
+                p => p.Unit);
 
             var response = _mapper.Map<List<GetAllProductsResponse>>(products);
 
