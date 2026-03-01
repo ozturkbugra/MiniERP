@@ -12,6 +12,7 @@ namespace MiniERP.Persistence.Configuration
             builder.Property(w => w.Name).HasMaxLength(100).IsRequired();
             builder.Property(w => w.Location).HasMaxLength(250);
             builder.HasIndex(w => w.Code).IsUnique();
+            builder.HasQueryFilter(w => !w.IsDeleted);
         }
     }
 }
