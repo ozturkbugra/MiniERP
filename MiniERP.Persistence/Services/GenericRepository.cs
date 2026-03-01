@@ -81,5 +81,10 @@ namespace MiniERP.Persistence.Services
 
             return await query.FirstOrDefaultAsync(x => EF.Property<Guid>(x, "Id") == id, cancellationToken);
         }
+
+        public IQueryable<T> Where(Expression<Func<T, bool>> expression)
+        {
+            return _context.Set<T>().Where(expression);
+        }
     }
 }

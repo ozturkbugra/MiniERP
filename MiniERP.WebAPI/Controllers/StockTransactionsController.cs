@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.StockTransactions.Commands.CreateStockTransaction;
+using MiniERP.Application.Features.StockTransactions.Commands.DeleteStockTransaction;
 using MiniERP.Application.Features.StockTransactions.Queries.GetAllStockTransactions;
 using MiniERP.Application.Features.StockTransactions.Queries.GetStockTransactions;
 
@@ -38,6 +39,11 @@ namespace MiniERP.WebAPI.Controllers
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
 
-
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new DeleteStockTransactionCommand(id), cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
     }
 }
