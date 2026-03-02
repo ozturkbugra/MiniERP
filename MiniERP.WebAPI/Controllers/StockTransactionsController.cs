@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.StockTransactions.Commands.CreateStockTransaction;
 using MiniERP.Application.Features.StockTransactions.Commands.DeleteStockTransaction;
 using MiniERP.Application.Features.StockTransactions.Queries.GetAllStockTransactions;
+using MiniERP.Application.Features.StockTransactions.Queries.GetCriticalStock;
 using MiniERP.Application.Features.StockTransactions.Queries.GetStockBalance;
 using MiniERP.Application.Features.StockTransactions.Queries.GetStockTransactions;
 
@@ -51,6 +52,13 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> GetBalance([FromQuery] GetStockBalanceQuery query)
         {
             var response = await _mediator.Send(query);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("critical-stock")]
+        public async Task<IActionResult> GetCriticalStock([FromQuery] GetCriticalStockQuery query, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(query, cancellationToken);
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
     }
