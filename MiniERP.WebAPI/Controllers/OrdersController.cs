@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Orders.Commands.ApproveOrder;
+using MiniERP.Application.Features.Orders.Commands.CancelOrder;
 using MiniERP.Application.Features.Orders.Commands.CreateOrder;
 
 namespace MiniERP.WebAPI.Controllers
@@ -27,6 +28,13 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new ApproveOrderCommand(id), cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPost("{id}/cancel")]
+        public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new CancelOrderCommand(id), cancellationToken);
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
     }
