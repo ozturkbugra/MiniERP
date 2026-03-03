@@ -1,0 +1,33 @@
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using MiniERP.Application.Features.Orders.Commands.ApproveOrder;
+using MiniERP.Application.Features.Orders.Commands.CreateOrder;
+
+namespace MiniERP.WebAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class OrdersController : ControllerBase
+    {
+        private readonly IMediator _mediator;
+
+        public OrdersController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(CreateOrderCommand command, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(command, cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPost("{id}/approve")]
+        public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new ApproveOrderCommand(id), cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+    }
+}
