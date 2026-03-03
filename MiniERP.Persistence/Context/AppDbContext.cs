@@ -32,6 +32,8 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     public DbSet<Unit> Units { get; set; }
     public DbSet<Warehouse> Warehouses { get; set; }
     public DbSet<StockTransaction> StockTransactions { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderDetail> OrderDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
