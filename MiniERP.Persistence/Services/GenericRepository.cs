@@ -86,5 +86,26 @@ namespace MiniERP.Persistence.Services
         {
             return _context.Set<T>().Where(expression);
         }
+
+        public Task UpdateAsync(T entity, CancellationToken cancellationToken)
+        {
+            _context.Set<T>().Update(entity);
+            return Task.CompletedTask;
+        }
+
+        public async Task<T?> GetByIdWithIncludesAsync(Guid id,CancellationToken cancellationToken = default,params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _context.Set<T>();
+
+            if (includes.Any())
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            return await query.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
+        }
     }
 }

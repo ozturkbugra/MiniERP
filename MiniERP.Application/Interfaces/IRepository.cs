@@ -25,4 +25,8 @@ public interface IRepository<T> where T : BaseEntity
     Task<T?> GetByIdAsync(Guid id,  CancellationToken cancellationToken, params Expression<Func<T, object>>[] includes);
 
     IQueryable<T> Where(Expression<Func<T, bool>> expression);
+
+    Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
+
+    Task<T?> GetByIdWithIncludesAsync(Guid id, CancellationToken cancellationToken = default,params Expression<Func<T, object>>[] includes);
 }
