@@ -9,6 +9,7 @@ namespace MiniERP.Application.Features.Invoices.Commands.CreateInvoice
     DateTime InvoiceDate,
     Guid CustomerId,
     Guid? OrderId,
+    Guid? WarehouseId,
     List<CreateInvoiceDetailResponse> Details
 ) : IRequest<Result<string>>;
 }

@@ -25,7 +25,8 @@ namespace MiniERP.Application.Features.Invoices.Commands.CreateInvoice
                 request.InvoiceDate,
                 request.Type,
                 request.CustomerId,
-                request.OrderId
+                request.OrderId,
+                request.WarehouseId
             );
 
             foreach (var detailDto in request.Details)
