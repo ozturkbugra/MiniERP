@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Invoices.Commands.ApproveInvoice;
+using MiniERP.Application.Features.Invoices.Commands.CancelInvoice;
 using MiniERP.Application.Features.Invoices.Commands.CreateInvoice;
 
 namespace MiniERP.WebAPI.Controllers
@@ -25,6 +26,13 @@ namespace MiniERP.WebAPI.Controllers
 
         [HttpPost("Approve")]
         public async Task<IActionResult> Approve([FromBody] ApproveInvoiceCommand request, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(request, cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPost("Cancel")]
+        public async Task<IActionResult> Cancel([FromBody] CancelInvoiceCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
             return response.IsSuccess ? Ok(response) : BadRequest(response);

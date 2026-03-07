@@ -53,5 +53,13 @@ namespace MiniERP.Domain.Entities
 
             Status = OrderStatus.Invoiced;
         }
+
+        public void UndoInvoicedStatus()
+        {
+            if (Status != OrderStatus.Invoiced)
+                throw new InvalidOperationException("Sadece faturalanmış siparişler geri alınabilir.");
+
+            Status = OrderStatus.Approved;
+        }
     }
 }
