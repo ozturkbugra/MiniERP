@@ -1,4 +1,4 @@
-﻿namespace MiniERP.Application.Features.Invoices.Queries
+﻿namespace MiniERP.Application.Features.Invoices.Queries.GetAllInvoices
 {
     public sealed record GetInvoicesResponse(
     Guid Id,

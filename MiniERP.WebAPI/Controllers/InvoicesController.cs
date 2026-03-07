@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Invoices.Commands.ApproveInvoice;
 using MiniERP.Application.Features.Invoices.Commands.CancelInvoice;
 using MiniERP.Application.Features.Invoices.Commands.CreateInvoice;
-using MiniERP.Application.Features.Invoices.Queries;
+using MiniERP.Application.Features.Invoices.Queries.GetAllInvoices;
+using MiniERP.Application.Features.Invoices.Queries.GetInvoiceById;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -43,6 +44,13 @@ namespace MiniERP.WebAPI.Controllers
         public async Task<IActionResult> Cancel([FromBody] CancelInvoiceCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(new GetInvoiceByIdQuery(id), cancellationToken);
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
     }

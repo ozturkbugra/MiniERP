@@ -4,7 +4,7 @@ using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
 using CustomerEntity = MiniERP.Domain.Entities.Customer;
 
-namespace MiniERP.Application.Features.Invoices.Queries.GetInvoices;
+namespace MiniERP.Application.Features.Invoices.Queries.GetAllInvoices;
 
 public sealed class GetInvoicesQueryHandler : IRequestHandler<GetInvoicesQuery, Result<List<GetInvoicesResponse>>>
 {
