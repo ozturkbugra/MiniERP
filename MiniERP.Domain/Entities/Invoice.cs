@@ -26,13 +26,15 @@ namespace MiniERP.Domain.Entities
         public Guid? TransactionId { get; private set; }
         public PaymentType? PaymentType { get; private set; }
 
+        public Guid? WarehouseId { get; private set; }
+
 
         private readonly List<InvoiceDetail> _details = new();
         public IReadOnlyCollection<InvoiceDetail> Details => _details.AsReadOnly();
 
         private Invoice() { } // EF Core için
 
-        public Invoice(string invoiceNumber, DateTime invoiceDate, InvoiceType type, Guid customerId, Guid? orderId = null)
+        public Invoice(string invoiceNumber, DateTime invoiceDate, InvoiceType type, Guid customerId, Guid? orderId = null, Guid? warehouseId = null)
         {
             InvoiceNumber = invoiceNumber;
             InvoiceDate = invoiceDate;
@@ -40,6 +42,7 @@ namespace MiniERP.Domain.Entities
             Status = InvoiceStatus.Draft; // Doğduğu an taslaktır
             CustomerId = customerId;
             OrderId = orderId;
+            WarehouseId = warehouseId; // Atama yapıldı
         }
 
         public void AddDetail(InvoiceDetail detail)
