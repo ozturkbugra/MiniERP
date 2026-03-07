@@ -14,8 +14,8 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveInvoice
         private readonly IRepository<StockTransaction> _stockRepository;
         private readonly IRepository<CustomerTransaction> _customerRepository;
         private readonly IRepository<OrderDetail> _orderDetailRepository;
-        private readonly IRepository<CashTransaction> _cashRepository; // YENİ
-        private readonly IRepository<BankTransaction> _bankRepository; // YENİ
+        private readonly IRepository<CashTransaction> _cashRepository;
+        private readonly IRepository<BankTransaction> _bankRepository;
         private readonly IUnitOfWork _unitOfWork;
 
         public ApproveInvoiceCommandHandler(
@@ -26,7 +26,7 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveInvoice
             IRepository<OrderDetail> orderDetailRepository,
             IRepository<CashTransaction> cashRepository,
             IRepository<BankTransaction> bankRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork) 
         {
             _invoiceRepository = invoiceRepository;
             _orderRepository = orderRepository;
@@ -40,175 +40,149 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveInvoice
 
         public async Task<Result<string>> Handle(ApproveInvoiceCommand request, CancellationToken cancellationToken)
         {
-            // 1. Validasyonlar (Kapıdaki güvenlik)
+            // Önce temel kontrolleri yapalım, boşuna transaction başlatmayalım
             if (request.PaymentType == PaymentType.Credit && (request.CashId is not null || request.BankId is not null))
-                return Result<string>.Failure("Veresiye işlemde kasa veya banka seçilemez.");
+                return Result<string>.Failure("Açık (veresiye) hesapta kasa veya banka seçemezsin.");
 
             if (request.PaymentType == PaymentType.Cash && request.CashId is null)
-                return Result<string>.Failure("Nakit işlem için kasa seçilmelidir.");
+                return Result<string>.Failure("Nakit ödeme için kasa seçmen şart.");
 
             if (request.PaymentType == PaymentType.Bank && request.BankId is null)
-                return Result<string>.Failure("Banka işlem için banka seçilmelidir.");
+                return Result<string>.Failure("Banka ödemesi için banka hesabı seçmelisin.");
 
+            // İşlemlerin yarım kalmaması için Serializable seviyesinde kilitliyoruz
             await using var transaction = await _unitOfWork.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
 
             try
             {
-                // Faturayı satırlarıyla beraber çek
+                // Faturayı satırlarıyla beraber çekelim
                 var invoice = await _invoiceRepository.GetByIdWithIncludesAsync(request.Id, cancellationToken, x => x.Details);
 
                 if (invoice == null) return Result<string>.Failure("Fatura bulunamadı.");
-                if (invoice.IsDeleted) return Result<string>.Failure("Silinmiş fatura onaylanamaz.");
-                if (invoice.Status != InvoiceStatus.Draft) return Result<string>.Failure("Sadece taslak faturalar onaylanabilir.");
+                if (invoice.Status != InvoiceStatus.Draft) return Result<string>.Failure("Bu fatura zaten onaylanmış veya iptal edilmiş.");
 
                 var isPurchase = invoice.Type == InvoiceType.Purchase;
-                var sharedTransactionId = Guid.NewGuid();
+                var sharedTransactionId = Guid.NewGuid(); // Tüm hareketleri bu ID ile birbirine bağlayacağız
 
-                // 2. STOK KONTROLÜ VE HAREKETLERİ
+                // 1. Stok Hareketleri ve Kontrolü
                 foreach (var detail in invoice.Details)
                 {
-                    if (!isPurchase) // Satış faturasıysa stok kontrolü yap
+                    if (!isPurchase) // Satış yapıyorsak stok yeterli mi bakalım
                     {
-                        // A) FİZİKSEL BAKİYE: Veritabanı seviyesinde hesapla
-                        var physicalBalance = _stockRepository
-                            .Where(x => x.ProductId == detail.ProductId && x.WarehouseId == detail.WarehouseId && !x.IsDeleted)
-                            .Select(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity)
-                            .ToList()
-                            .Sum();
+                        // Mevcut fiziksel stok hesabı (Girişler - Çıkışlar)
+                        var stockMoves = await _stockRepository.ToListAsync(_stockRepository.Where(x => x.ProductId == detail.ProductId && x.WarehouseId == detail.WarehouseId && !x.IsDeleted), cancellationToken);
+                        var physicalBalance = stockMoves.Sum(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity);
 
-                        // B) REZERVASYONLAR: Onaylı ama henüz faturalanmamış DİĞER siparişler
-                        var reservedAmount = _orderDetailRepository
-                            .Where(x => x.ProductId == detail.ProductId &&
-                                        x.WarehouseId == detail.WarehouseId &&
-                                        x.Order!.Status == OrderStatus.Approved &&
-                                        !x.IsDeleted &&
-                                        // Eğer bu fatura bir siparişe bağlıysa, o siparişin kendi rezervasyonunu hesaplamaya katma
-                                        (!invoice.OrderId.HasValue || x.OrderId != invoice.OrderId.Value))
-                            .Select(x => x.Quantity)
-                            .ToList()
-                            .Sum();
+                        // Bekleyen (Onaylı) diğer siparişlerin rezervasyonu
+                        var reservations = await _orderDetailRepository.ToListAsync(_orderDetailRepository.Where(x =>
+                            x.ProductId == detail.ProductId &&
+                            x.WarehouseId == detail.WarehouseId &&
+                            x.Order!.Status == OrderStatus.Approved &&
+                            !x.IsDeleted &&
+                            (!invoice.OrderId.HasValue || x.OrderId != invoice.OrderId.Value)), cancellationToken);
 
+                        var reservedAmount = reservations.Sum(x => x.Quantity);
                         var availableStock = physicalBalance - reservedAmount;
 
-                        // C) KONTROL
                         if (availableStock < detail.Quantity)
-                        {
-                            // Transaction rollback catch bloğuna düşecek
-                            throw new Exception($"Yetersiz stok! Ürün ID: {detail.ProductId}, Mevcut: {physicalBalance}, Rezerve: {reservedAmount}, Müsait: {availableStock}, Talep: {detail.Quantity}");
-                        }
+                            throw new Exception($"{detail.ProductId} için yeterli stok yok. Müsait: {availableStock}, Gereken: {detail.Quantity}");
                     }
 
-                    // Stok hareketini oluştur 
-                    var stockTransaction = new StockTransaction
+                    // Stok hareket kaydını atıyoruz
+                    await _stockRepository.AddAsync(new StockTransaction
                     {
-                        // Belge ve Zaman Bilgileri
+                        TransactionId = sharedTransactionId,
                         DocumentNo = invoice.InvoiceNumber,
                         TransactionDate = invoice.InvoiceDate,
-
-                        // Miktar ve Fiyat (Hesaplamalar için ham veri)
+                        ProductId = detail.ProductId,
+                        WarehouseId = detail.WarehouseId,
                         Quantity = detail.Quantity,
                         UnitPrice = detail.UnitPrice,
-
-                        // İşlem Tipi ve Açıklama
                         Type = isPurchase ? StockTransactionType.In : StockTransactionType.Out,
-                        Description = isPurchase ? "Alım Faturası İle Stok Girişi" : "Satış Faturası İle Stok Çıkışı",
-
-                        // İlişkisel Linkler (Bu kısımlar raporlama için altın değerinde)
-                        ProductId = detail.ProductId,
-                        WarehouseId = detail.WarehouseId, // Satır bazlı depo
+                        Description = isPurchase ? "Alım Faturası" : "Satış Faturası",
                         CustomerId = invoice.CustomerId,
-
-                        // İzlenebilirlik (SharedTransactionId ile tüm tablo hareketlerini birbirine bağlıyoruz)
-                        TransactionId = sharedTransactionId,
                         PaymentType = request.PaymentType
-                    };
-                    await _stockRepository.AddAsync(stockTransaction, cancellationToken);
+                    }, cancellationToken);
                 }
 
-                // 3. CARİ HAREKETİ - FATURA KAYDI (Açık Fatura - Borç/Alacak Oluşumu)
-                var customerInvoiceEntry = new CustomerTransaction
+                // 2. Cari Hareket (Fatura borç/alacak kaydı)
+                var mainTransaction = new CustomerTransaction
                 {
                     TransactionId = sharedTransactionId,
                     Date = invoice.InvoiceDate,
-                    Description = $"Fatura No: {invoice.InvoiceNumber} - " + (isPurchase ? "Alım Faturası" : "Satış Faturası"),
+                    Description = $"Fatura: {invoice.InvoiceNumber}",
                     CustomerId = invoice.CustomerId,
-                    Debit = isPurchase ? 0 : invoice.GrandTotal,
+                    Debit = isPurchase ? 0 : invoice.GrandTotal, // Satışsa borçlandır, alışsa alacaklandır
                     Credit = isPurchase ? invoice.GrandTotal : 0
                 };
-                customerInvoiceEntry.Validate();
-                await _customerRepository.AddAsync(customerInvoiceEntry, cancellationToken);
+                await _customerRepository.AddAsync(mainTransaction, cancellationToken);
 
-                // 4. EĞER PEŞİN ÖDEME VARSA (Kasa veya Banka - Kapalı Fatura İşlemi)
+                // 3. Peşin Ödeme Varsa (Kasa/Banka kayıtları)
                 if (request.PaymentType != PaymentType.Credit)
                 {
-                    // A) Cariyeyi Kapatan Ters Kayıt (Ödeme / Tahsilat)
-                    var paymentOffset = new CustomerTransaction
+                    // Cariyi kapatan ters kayıt (Tahsilat/Ödeme)
+                    var offsetTransaction = new CustomerTransaction
                     {
                         TransactionId = sharedTransactionId,
                         Date = invoice.InvoiceDate,
-                        Description = $"Fatura No: {invoice.InvoiceNumber} - " + (isPurchase ? "Peşin Ödeme" : "Peşin Tahsilat"),
+                        Description = $"Fatura Ödemesi: {invoice.InvoiceNumber}",
                         CustomerId = invoice.CustomerId,
-                        Debit = isPurchase ? invoice.GrandTotal : 0, // Alışta borcumuz azalır (Ödeme yaptık)
-                        Credit = isPurchase ? 0 : invoice.GrandTotal // Satışta alacağımız azalır (Tahsilat yaptık)
+                        Debit = isPurchase ? invoice.GrandTotal : 0,
+                        Credit = isPurchase ? 0 : invoice.GrandTotal
                     };
-                    paymentOffset.Validate();
-                    await _customerRepository.AddAsync(paymentOffset, cancellationToken);
+                    await _customerRepository.AddAsync(offsetTransaction, cancellationToken);
 
-                    // B) Kasaya veya Bankaya Parayı Gir/Çık
+                    // Kasa veya Banka girişi/çıkışı
                     if (request.PaymentType == PaymentType.Cash)
                     {
-                        var cashEntry = new CashTransaction
+                        await _cashRepository.AddAsync(new CashTransaction
                         {
                             TransactionId = sharedTransactionId,
-                            Date = invoice.InvoiceDate,
-                            Description = $"Fatura No: {invoice.InvoiceNumber} - " + (isPurchase ? "Fatura Ödemesi" : "Fatura Tahsilatı"),
                             CashId = request.CashId!.Value,
-                            Debit = isPurchase ? 0 : invoice.GrandTotal, // Satışsa kasaya para GİRER (Borç/Debit artar)
-                            Credit = isPurchase ? invoice.GrandTotal : 0 // Alışsa kasadan para ÇIKAR (Alacak/Credit)
-                        };
-                        cashEntry.Validate();
-                        await _cashRepository.AddAsync(cashEntry, cancellationToken);
+                            Date = invoice.InvoiceDate,
+                            Debit = isPurchase ? 0 : invoice.GrandTotal, // Satışsa kasaya para girer
+                            Credit = isPurchase ? invoice.GrandTotal : 0,
+                            Description = $"Fatura No: {invoice.InvoiceNumber}"
+                        }, cancellationToken);
                     }
                     else if (request.PaymentType == PaymentType.Bank)
                     {
-                        var bankEntry = new BankTransaction
+                        await _bankRepository.AddAsync(new BankTransaction
                         {
                             TransactionId = sharedTransactionId,
-                            Date = invoice.InvoiceDate,
-                            Description = $"Fatura No: {invoice.InvoiceNumber} - " + (isPurchase ? "Fatura Ödemesi (Banka)" : "Fatura Tahsilatı (Banka)"),
                             BankId = request.BankId!.Value,
+                            Date = invoice.InvoiceDate,
                             Debit = isPurchase ? 0 : invoice.GrandTotal,
-                            Credit = isPurchase ? invoice.GrandTotal : 0
-                        };
-                        bankEntry.Validate();
-                        await _bankRepository.AddAsync(bankEntry, cancellationToken);
+                            Credit = isPurchase ? invoice.GrandTotal : 0,
+                            Description = $"Fatura No: {invoice.InvoiceNumber}"
+                        }, cancellationToken);
                     }
                 }
 
-                // 5. SİPARİŞ DURUM GÜNCELLEMESİ 
+                // 4. Eğer bir siparişten geldiysek o siparişi kapatalım
                 if (invoice.OrderId.HasValue)
                 {
                     var order = await _orderRepository.GetByIdAsync(invoice.OrderId.Value, cancellationToken);
                     if (order != null)
                     {
-                        order.MarkAsInvoiced(); 
+                        order.MarkAsInvoiced(); // Statü artık Faturalandı
                         await _orderRepository.UpdateAsync(order, cancellationToken);
                     }
                 }
 
-                // 6. Faturayı Onayla ve Kaydet
+                // 5. Faturayı onayla ve bitir
                 invoice.Approve(sharedTransactionId, request.PaymentType);
                 await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
-                return Result<string>.Success(invoice.InvoiceNumber, $"Fatura onaylandı. ({request.PaymentType} olarak işlendi)");
+                return Result<string>.Success(invoice.InvoiceNumber, "Fatura başarıyla onaylandı ve tüm kayıtlar işlendi.");
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync(cancellationToken);
-                return Result<string>.Failure($"Kritik hata: {ex.Message}");
+                await transaction.RollbackAsync(cancellationToken); // Bir hata olursa her şeyi geri al
+                return Result<string>.Failure($"Hata oluştu, hiçbir işlem yapılmadı: {ex.Message}");
             }
         }
     }
