@@ -31,7 +31,8 @@ namespace MiniERP.Application.Features.Orders.Commands.CreateOrder
                 OrderDate = request.OrderDate,
                 Description = request.Description,
                 Type = request.Type,
-                CustomerId = request.CustomerId
+                CustomerId = request.CustomerId,
+                WarehouseId = request.WarehouseId
             };
 
             // 2. Satırları (Lines) Header'a ekliyoruz

@@ -10,5 +10,6 @@ namespace MiniERP.Application.Features.Orders.Commands.CreateOrder
     string? Description,
     OrderType Type,
     Guid CustomerId,
+    Guid WarehouseId,
     List<CreateOrderLineResponse> OrderLines) : IRequest<Result<string>>;
 }

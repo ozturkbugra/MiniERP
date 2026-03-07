@@ -17,6 +17,8 @@ namespace MiniERP.Domain.Entities
         public Guid CustomerId { get; set; }
         public Customer? Customer { get; set; }
 
+        public Guid WarehouseId { get; set; }
+
         public ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
         public Order()
