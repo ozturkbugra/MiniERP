@@ -67,41 +67,60 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveInvoice
                 // 2. STOK KONTROLÜ VE HAREKETLERİ
                 foreach (var detail in invoice.Details)
                 {
-                    if (!isPurchase)
+                    if (!isPurchase) // Satış faturasıysa stok kontrolü yap
                     {
+                        // A) FİZİKSEL BAKİYE: Veritabanı seviyesinde hesapla
                         var physicalBalance = _stockRepository
                             .Where(x => x.ProductId == detail.ProductId && x.WarehouseId == detail.WarehouseId && !x.IsDeleted)
-                            .AsEnumerable()
-                            .Sum(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity);
+                            .Select(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity)
+                            .ToList()
+                            .Sum();
 
+                        // B) REZERVASYONLAR: Onaylı ama henüz faturalanmamış DİĞER siparişler
                         var reservedAmount = _orderDetailRepository
                             .Where(x => x.ProductId == detail.ProductId &&
                                         x.WarehouseId == detail.WarehouseId &&
                                         x.Order!.Status == OrderStatus.Approved &&
                                         !x.IsDeleted &&
+                                        // Eğer bu fatura bir siparişe bağlıysa, o siparişin kendi rezervasyonunu hesaplamaya katma
                                         (!invoice.OrderId.HasValue || x.OrderId != invoice.OrderId.Value))
-                            .AsEnumerable()
-                            .Sum(x => x.Quantity);
+                            .Select(x => x.Quantity)
+                            .ToList()
+                            .Sum();
 
                         var availableStock = physicalBalance - reservedAmount;
 
+                        // C) KONTROL
                         if (availableStock < detail.Quantity)
-                            return Result<string>.Failure($"Yetersiz stok! Ürün ID: {detail.ProductId}, Müsait: {availableStock}, Talep: {detail.Quantity}");
+                        {
+                            // Transaction rollback catch bloğuna düşecek
+                            throw new Exception($"Yetersiz stok! Ürün ID: {detail.ProductId}, Mevcut: {physicalBalance}, Rezerve: {reservedAmount}, Müsait: {availableStock}, Talep: {detail.Quantity}");
+                        }
                     }
 
+                    // Stok hareketini oluştur 
                     var stockTransaction = new StockTransaction
                     {
+                        // Belge ve Zaman Bilgileri
                         DocumentNo = invoice.InvoiceNumber,
                         TransactionDate = invoice.InvoiceDate,
+
+                        // Miktar ve Fiyat (Hesaplamalar için ham veri)
                         Quantity = detail.Quantity,
                         UnitPrice = detail.UnitPrice,
-                        Description = isPurchase ? "Mal Alım Faturası" : "Mal Satış Faturası",
+
+                        // İşlem Tipi ve Açıklama
                         Type = isPurchase ? StockTransactionType.In : StockTransactionType.Out,
-                        TransactionId = sharedTransactionId,
-                        PaymentType = request.PaymentType, 
+                        Description = isPurchase ? "Alım Faturası İle Stok Girişi" : "Satış Faturası İle Stok Çıkışı",
+
+                        // İlişkisel Linkler (Bu kısımlar raporlama için altın değerinde)
                         ProductId = detail.ProductId,
-                        WarehouseId = detail.WarehouseId,
-                        CustomerId = invoice.CustomerId
+                        WarehouseId = detail.WarehouseId, // Satır bazlı depo
+                        CustomerId = invoice.CustomerId,
+
+                        // İzlenebilirlik (SharedTransactionId ile tüm tablo hareketlerini birbirine bağlıyoruz)
+                        TransactionId = sharedTransactionId,
+                        PaymentType = request.PaymentType
                     };
                     await _stockRepository.AddAsync(stockTransaction, cancellationToken);
                 }
