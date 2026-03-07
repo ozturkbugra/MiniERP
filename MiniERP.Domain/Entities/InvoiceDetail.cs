@@ -27,6 +27,9 @@ namespace MiniERP.Domain.Entities
             DiscountRate = discountRate;
             VatRate = vatRate;
 
+            DiscountRate = discountRate >= 1 ? discountRate / 100m : discountRate;
+            VatRate = vatRate >= 1 ? vatRate / 100m : vatRate;
+
             CalculateLineTotal();
         }
 
