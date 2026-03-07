@@ -32,7 +32,6 @@ namespace MiniERP.Application.Features.Orders.Commands.ApproveOrder
 
             try
             {
-                // Siparişi satırlarıyla beraber çekiyoruz.
                 var order = await _orderRepository.GetByIdWithIncludesAsync(
                     request.OrderId,
                     cancellationToken,
@@ -42,36 +41,40 @@ namespace MiniERP.Application.Features.Orders.Commands.ApproveOrder
                 if (order.IsDeleted) return Result<string>.Failure("Silinmiş sipariş onaylanamaz.");
                 if (order.Status != OrderStatus.Pending) return Result<string>.Failure("Sipariş zaten onaylanmış veya iptal edilmiş.");
 
-                // STOK MÜSAİTLİK KONTROLÜ
+                // 1. STOK MÜSAİTLİK KONTROLÜ
                 foreach (var line in order.OrderDetails)
                 {
-                    // a) Fiziki Bakiye
+                    // a) Fiziki Bakiye: Depodaki gerçek miktar (Sadece gerekli kolonu çekiyoruz)
                     var physicalBalance = _stockRepository
                         .Where(x => x.ProductId == line.ProductId && x.WarehouseId == line.WarehouseId && !x.IsDeleted)
-                        .AsEnumerable()
-                        .Sum(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity);
+                        .Select(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity)
+                        .ToList()
+                        .Sum();
 
-                    // b) Rezerve Miktar
+                    // b) Rezerve Miktar: Onaylanmış diğer siparişlerin toplamı
                     var reservedAmount = _orderDetailRepository
                         .Where(x => x.ProductId == line.ProductId &&
                                     x.WarehouseId == line.WarehouseId &&
                                     x.Order!.Status == OrderStatus.Approved &&
                                     !x.IsDeleted &&
-                                    x.OrderId != order.Id)
-                        .AsEnumerable() // Senkron kilitlenmeyi önlemek için buraya da AsEnumerable ekledik.
-                        .Sum(x => x.Quantity);
+                                    x.OrderId != order.Id) // Kendi siparişimizi rezerve saymıyoruz
+                        .Select(x => x.Quantity)
+                        .ToList()
+                        .Sum();
 
                     var availableStock = physicalBalance - reservedAmount;
 
+                    // c) Müsaitlik Kontrolü
                     if (availableStock < line.Quantity)
                     {
-                        // ürün yoksa işlemi geri sarıyoruz
                         return Result<string>.Failure($"Yetersiz stok! Ürün ID: {line.ProductId}, Müsait: {availableStock}, Talep: {line.Quantity}");
                     }
                 }
 
+                // 2. ONAY VE KAYIT
                 order.Approve();
                 await _orderRepository.UpdateAsync(order, cancellationToken);
+
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
 
@@ -80,7 +83,7 @@ namespace MiniERP.Application.Features.Orders.Commands.ApproveOrder
             catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                return Result<string>.Failure($"Beklenmedik bir hata oluştu: {ex.Message}");
+                return Result<string>.Failure($"Beklenmedik bir hata: {ex.Message}");
             }
         }
     }
