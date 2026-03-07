@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Orders.Commands.ApproveOrder;
 using MiniERP.Application.Features.Orders.Commands.CancelOrder;
 using MiniERP.Application.Features.Orders.Commands.CreateOrder;
-using MiniERP.Application.Features.Orders.Queries;
+using MiniERP.Application.Features.Orders.Queries.GetAllOrders;
+using MiniERP.Application.Features.Orders.Queries.GetOrderById;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -44,6 +45,12 @@ namespace MiniERP.WebAPI.Controllers
         {
             var response = await _mediator.Send(new CancelOrderCommand(id), cancellationToken);
             return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+        {
+            return Ok(await _mediator.Send(new GetOrderByIdQuery(id), cancellationToken));
         }
     }
 }

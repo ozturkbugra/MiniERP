@@ -1,4 +1,4 @@
-﻿namespace MiniERP.Application.Features.Orders.Queries
+﻿namespace MiniERP.Application.Features.Orders.Queries.GetAllOrders
 {
     public sealed record GetOrdersResponse(
      Guid Id,

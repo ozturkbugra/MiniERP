@@ -3,7 +3,7 @@ using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
 using CustomerEntity = MiniERP.Domain.Entities.Customer;
-namespace MiniERP.Application.Features.Orders.Queries
+namespace MiniERP.Application.Features.Orders.Queries.GetAllOrders
 {
    public sealed class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, Result<List<GetOrdersResponse>>>
     {
