@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Transactions;
 
 namespace MiniERP.Domain.Entities
 {
@@ -21,6 +22,10 @@ namespace MiniERP.Domain.Entities
         public decimal TotalDiscount { get; private set; }
         public decimal TotalVat { get; private set; }
         public decimal GrandTotal { get; private set; }
+
+        public Guid? TransactionId { get; private set; }
+        public PaymentType? PaymentType { get; private set; }
+
 
         private readonly List<InvoiceDetail> _details = new();
         public IReadOnlyCollection<InvoiceDetail> Details => _details.AsReadOnly();
@@ -69,7 +74,7 @@ namespace MiniERP.Domain.Entities
             }
         }
 
-        public void Approve()
+        public void Approve(Guid transactionId, PaymentType paymentType)
         {
             // Guard Clauses
             if (Status != InvoiceStatus.Draft)
@@ -80,6 +85,9 @@ namespace MiniERP.Domain.Entities
 
             CalculateTotals();
             Status = InvoiceStatus.Approved;
+
+            TransactionId = transactionId;
+            PaymentType = paymentType;
         }
 
         public void Cancel()
