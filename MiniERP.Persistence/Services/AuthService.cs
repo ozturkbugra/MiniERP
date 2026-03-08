@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Application.Features.Users.Commands.ChangePassword;
 using MiniERP.Application.Features.Users.Commands.UpdateUser;
@@ -6,7 +7,10 @@ using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
+using MiniERP.Domain.Entities;
+using MiniERP.Persistence.Context;
 using MiniERP.Persistence.IdentityModels;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace MiniERP.Persistence.Services;
 
@@ -14,11 +18,17 @@ public sealed class AuthService : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IJwtProvider _jwtProvider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly AppDbContext _context;
 
-    public AuthService(UserManager<ApplicationUser> userManager, IJwtProvider jwtProvider)
+    public AuthService(UserManager<ApplicationUser> userManager, IJwtProvider jwtProvider, IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork, AppDbContext context)
     {
         _userManager = userManager;
         _jwtProvider = jwtProvider;
+        _httpContextAccessor = httpContextAccessor;
+        _unitOfWork = unitOfWork;
+        _context = context;
     }
 
     public async Task<Result> AssignRoleAsync(string userId, string roleName)
@@ -209,5 +219,30 @@ public sealed class AuthService : IAuthService
 
         return Result<string>.Failure("Şifre değiştirilemedi: " +
             string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
+    public async Task<string> LogoutAsync()
+    {
+        var token = _httpContextAccessor.HttpContext?.Request.Headers["Authorization"]
+            .ToString().Replace("Bearer ", "");
+
+        if (string.IsNullOrEmpty(token)) return "Token bulunamadı.";
+
+        var handler = new JwtSecurityTokenHandler();
+        var jwtToken = handler.ReadJwtToken(token);
+        var expClaim = jwtToken.Claims.First(c => c.Type == JwtRegisteredClaimNames.Exp).Value;
+        var expiryDate = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim)).UtcDateTime;
+
+        var invalidToken = new InvalidToken
+        {
+            Token = token,
+            ExpiryDate = expiryDate
+        };
+
+        await _context.InvalidTokens.AddAsync(invalidToken);
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return "Başarıyla çıkış yapıldı.";
     }
 }

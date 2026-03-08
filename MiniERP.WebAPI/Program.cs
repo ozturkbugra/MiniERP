@@ -92,6 +92,9 @@ app.UseHttpsRedirection();
 
 // Sıralama önemli. Önce kimlik doğrulanır (Kimsin?), sonra yetki kontrol edilir (Neye yetkin var?).
 app.UseAuthentication();
+
+app.UseMiddleware<JwtBlacklistMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();

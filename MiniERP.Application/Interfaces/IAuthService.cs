@@ -25,4 +25,5 @@ public interface IAuthService
     Task<Result<string>> DeleteUserAsync(string id, CancellationToken cancellationToken);
 
     Task<Result<string>> ChangePasswordAsync(ChangePasswordCommand request, CancellationToken cancellationToken);
+    Task<string> LogoutAsync();
 }

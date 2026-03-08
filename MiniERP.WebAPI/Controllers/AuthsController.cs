@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.AssignRole.Commands.AssingRole;
 using MiniERP.Application.Features.AssignRole.Commands.RemoveRoleFromUser;
 using MiniERP.Application.Features.Auth.Commands.LoginCommands;
+using MiniERP.Application.Features.Auth.Commands.Logout;
 using MiniERP.Application.Features.Users.Commands.ChangePassword;
 using MiniERP.Application.Features.Users.Commands.CreateUser;
 using MiniERP.Application.Features.Users.Commands.DeleteUser;
@@ -107,5 +108,13 @@ namespace MiniERP.WebAPI.Controllers
             return Ok(response);
         }
 
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            var response = await _mediator.Send(new LogoutCommand());
+            return Ok(new { message = response });
+        }
     }
 }
