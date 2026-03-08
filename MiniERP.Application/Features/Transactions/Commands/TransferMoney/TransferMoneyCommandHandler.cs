@@ -2,6 +2,7 @@
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.Application.Features.Transactions.Commands.TransferMoney
 {
@@ -36,6 +37,7 @@ namespace MiniERP.Application.Features.Transactions.Commands.TransferMoney
                 await _cashTransactionRepository.AddAsync(new CashTransaction
                 {
                     TransactionId = sharedTransactionId,
+                    Type = TransactionType.BankTransfer,
                     CashId = request.FromCashId.Value,
                     Debit = 0,
                     Credit = request.Amount,
@@ -48,6 +50,7 @@ namespace MiniERP.Application.Features.Transactions.Commands.TransferMoney
                 await _bankTransactionRepository.AddAsync(new BankTransaction
                 {
                     TransactionId = sharedTransactionId,
+                    Type = TransactionType.BankTransfer,
                     BankId = request.FromBankId.Value,
                     Debit = 0,
                     Credit = request.Amount,
@@ -62,6 +65,7 @@ namespace MiniERP.Application.Features.Transactions.Commands.TransferMoney
                 await _cashTransactionRepository.AddAsync(new CashTransaction
                 {
                     TransactionId = sharedTransactionId,
+                    Type = TransactionType.BankTransfer,
                     CashId = request.ToCashId.Value,
                     Debit = request.Amount,
                     Credit = 0,
@@ -74,6 +78,7 @@ namespace MiniERP.Application.Features.Transactions.Commands.TransferMoney
                 await _bankTransactionRepository.AddAsync(new BankTransaction
                 {
                     TransactionId = sharedTransactionId,
+                    Type = TransactionType.BankTransfer,
                     BankId = request.ToBankId.Value,
                     Debit = request.Amount,
                     Credit = 0,

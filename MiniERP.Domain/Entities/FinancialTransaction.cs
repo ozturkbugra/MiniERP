@@ -1,4 +1,5 @@
 ﻿using MiniERP.Domain.Common;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.Domain.Entities
 {
@@ -9,7 +10,7 @@ namespace MiniERP.Domain.Entities
         public decimal Credit { get; set; } // Alacak Girişi
         public string Description { get; set; } = string.Empty;
         public DateTime Date { get; set; }
-
+        public TransactionType Type { get; set; }
         public void Validate()
         {
             if (Debit > 0 && Credit > 0)

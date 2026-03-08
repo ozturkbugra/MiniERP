@@ -3,6 +3,7 @@ using MediatR;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
+using MiniERP.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,9 @@ namespace MiniERP.Application.Features.Transactions.Commands.CreateCollection
 
             // 2. Müşteri Hareketini Map'le ve Ekle
             var customerTransaction = _mapper.Map<CustomerTransaction>(request);
-            customerTransaction.TransactionId = sharedTransactionId; 
+            customerTransaction.TransactionId = sharedTransactionId;
+            customerTransaction.Type = TransactionType.Collection;
+
             await _customerTransactionRepository.AddAsync(customerTransaction, cancellationToken);
 
             // 3. Kasa veya Banka Hareketini Map'le ve Ekle
@@ -51,12 +54,14 @@ namespace MiniERP.Application.Features.Transactions.Commands.CreateCollection
             {
                 var cashTransaction = _mapper.Map<CashTransaction>(request);
                 cashTransaction.TransactionId = sharedTransactionId;
+                cashTransaction.Type = TransactionType.Collection;
                 await _cashTransactionRepository.AddAsync(cashTransaction, cancellationToken);
             }
             else if (request.BankId is not null)
             {
                 var bankTransaction = _mapper.Map<BankTransaction>(request);
                 bankTransaction.TransactionId = sharedTransactionId;
+                bankTransaction.Type = TransactionType.Collection;
                 await _bankTransactionRepository.AddAsync(bankTransaction, cancellationToken);
             }
 

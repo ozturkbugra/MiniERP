@@ -2,6 +2,7 @@
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.Application.Features.Transactions.Commands.AddOpeningBalance
 {
@@ -42,7 +43,8 @@ namespace MiniERP.Application.Features.Transactions.Commands.AddOpeningBalance
                     Debit = debit,
                     Credit = credit,
                     Date = request.Date,
-                    Description = request.Description ?? "Kasa Açılış Fişi"
+                    Description = request.Description ?? "Kasa Açılış Fişi",
+                    Type = TransactionType.OpeningBalance
                 }, cancellationToken);
             }
             // 2. Bankaya Açılış Bakiyesi
@@ -55,7 +57,8 @@ namespace MiniERP.Application.Features.Transactions.Commands.AddOpeningBalance
                     Debit = debit,
                     Credit = credit,
                     Date = request.Date,
-                    Description = request.Description ?? "Banka Açılış Fişi"
+                    Description = request.Description ?? "Banka Açılış Fişi",
+                    Type = TransactionType.OpeningBalance
                 }, cancellationToken);
             }
             // 3. Cari Hesaba Açılış Bakiyesi
@@ -68,7 +71,9 @@ namespace MiniERP.Application.Features.Transactions.Commands.AddOpeningBalance
                     Debit = debit,
                     Credit = credit,
                     Date = request.Date,
-                    Description = request.Description ?? "Cari Açılış Fişi"
+                    Description = request.Description ?? "Cari Açılış Fişi",
+                    Type = TransactionType.OpeningBalance
+
                 }, cancellationToken);
             }
             else
@@ -77,7 +82,7 @@ namespace MiniERP.Application.Features.Transactions.Commands.AddOpeningBalance
             }
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-            return Result<string>.Success(request.Description ?? "","Açılış bakiyesi başarıyla tanımlandı.");
+            return Result<string>.Success(request.Description ?? "", "Açılış bakiyesi başarıyla tanımlandı.");
         }
     }
 }

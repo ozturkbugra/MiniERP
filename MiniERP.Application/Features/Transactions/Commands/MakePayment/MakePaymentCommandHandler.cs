@@ -3,6 +3,7 @@ using MediatR;
 using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.Application.Features.Transactions.Commands.MakePayment
 {
@@ -32,6 +33,7 @@ namespace MiniERP.Application.Features.Transactions.Commands.MakePayment
             // 1. Cari Hareketi (Debit - Borcumuz azalıyor)
             var customerTransaction = _mapper.Map<CustomerTransaction>(request);
             customerTransaction.TransactionId = sharedTransactionId;
+            customerTransaction.Type = TransactionType.Payment;
             await _customerTransactionRepository.AddAsync(customerTransaction, cancellationToken);
 
             // 2. Kasa veya Banka Hareketi (Credit - Para çıkıyor)
@@ -39,12 +41,14 @@ namespace MiniERP.Application.Features.Transactions.Commands.MakePayment
             {
                 var cashTransaction = _mapper.Map<CashTransaction>(request);
                 cashTransaction.TransactionId = sharedTransactionId;
+                cashTransaction.Type = TransactionType.Payment;
                 await _cashTransactionRepository.AddAsync(cashTransaction, cancellationToken);
             }
             else if (request.BankId is not null)
             {
                 var bankTransaction = _mapper.Map<BankTransaction>(request);
                 bankTransaction.TransactionId = sharedTransactionId;
+                bankTransaction.Type = TransactionType.Payment;
                 await _bankTransactionRepository.AddAsync(bankTransaction, cancellationToken);
             }
 

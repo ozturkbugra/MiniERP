@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using MiniERP.Domain.Common;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.Application.Features.Transactions.Commands.AddOpeningBalance
 {

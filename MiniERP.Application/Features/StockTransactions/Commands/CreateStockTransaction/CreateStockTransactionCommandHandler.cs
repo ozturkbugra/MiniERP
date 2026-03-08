@@ -104,6 +104,7 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
                 Date = request.TransactionDate,
                 Description = request.Description ?? (isStockIn ? "Mal Alım Faturası" : "Mal Satış Faturası"),
                 CustomerId = request.CustomerId.Value,
+                Type = isStockIn ? TransactionType.PurchaseInvoice : TransactionType.SalesInvoice,
                 Debit = isStockIn ? 0 : totalAmount,
                 Credit = isStockIn ? totalAmount : 0
             };
@@ -116,12 +117,16 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
                 // A) CARİ HAREKETİ - ÖDEME KAYDI (Cariyi kapatan ters kayıt)
                 // Alış yaptıysak (In) cariye ödeme yaparız (Cari Debit)
                 // Satış yaptıysak (Out) tahsilat yaparız (Cari Credit)
+
+                var financialType = isStockIn ? TransactionType.Payment : TransactionType.Collection;
+
                 var paymentOffset = new CustomerTransaction
                 {
                     TransactionId = sharedTransactionId,
                     Date = request.TransactionDate,
                     Description = request.Description ?? (isStockIn ? "Peşin Ödeme (Stok)" : "Peşin Tahsilat (Stok)"),
                     CustomerId = request.CustomerId.Value,
+                    Type = financialType,
                     Debit = isStockIn ? totalAmount : 0, // Alışta borcumuz azalır
                     Credit = isStockIn ? 0 : totalAmount  // Satışta alacağımız azalır
                 };
@@ -135,6 +140,7 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
                     {
                         TransactionId = sharedTransactionId,
                         Date = request.TransactionDate,
+                        Type = financialType,
                         Description = request.Description ?? (isStockIn ? "Stok Ödemesi" : "Stok Tahsilatı"),
                         CashId = request.CashId!.Value,
                         Debit = isStockIn ? 0 : totalAmount, // Satışta kasa artar
@@ -149,6 +155,7 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
                     {
                         TransactionId = sharedTransactionId,
                         Date = request.TransactionDate,
+                        Type = financialType,
                         Description = request.Description ?? (isStockIn ? "Stok Havalesi" : "Stok Tahsilatı (Banka)"),
                         BankId = request.BankId!.Value,
                         Debit = isStockIn ? 0 : totalAmount,
