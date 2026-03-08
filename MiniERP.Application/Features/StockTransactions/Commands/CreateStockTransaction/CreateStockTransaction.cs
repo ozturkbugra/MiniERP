@@ -13,7 +13,7 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
     StockTransactionType Type, // In (Giriş) - Out (Çıkış)
     Guid ProductId,
     Guid WarehouseId,
-    Guid CustomerId,
+    Guid? CustomerId,
     PaymentType PaymentType,
     Guid? CashId,
     Guid? BankId

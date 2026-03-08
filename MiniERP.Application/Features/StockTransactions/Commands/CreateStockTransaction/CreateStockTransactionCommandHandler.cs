@@ -31,6 +31,9 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
 
         public async Task<Result<string>> Handle(CreateStockTransactionCommand request, CancellationToken cancellationToken)
         {
+            
+            
+            
             // 1. Validasyonlar (Kapıdaki güvenlik)
             if (request.PaymentType == PaymentType.Credit && (request.CashId is not null || request.BankId is not null))
                 return Result<string>.Failure("Veresiye işlemde kasa veya banka seçilemez.");
@@ -45,11 +48,37 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
             if (request.PaymentType == PaymentType.Bank && request.BankId is null)
                 return Result<string>.Failure("Banka işlem için banka seçilmelidir.");
 
+            if (request.Type != StockTransactionType.Opening && request.CustomerId is null)
+                return Result<string>.Failure("Ticari stok hareketlerinde cari (müşteri) seçimi zorunludur.");
+
             var sharedTransactionId = Guid.NewGuid();
             var totalAmount = request.Quantity * request.UnitPrice;
             var isStockIn = request.Type == StockTransactionType.In;
 
-            // 2. STOK HAREKETİ (Fiziksel Ayak)
+            // 2. AÇILIŞ FİŞİ
+            if (request.Type == StockTransactionType.Opening)
+            {
+                var openingTransaction = new StockTransaction
+                {
+                    DocumentNo = request.DocumentNo,
+                    TransactionDate = request.TransactionDate,
+                    Quantity = request.Quantity,
+                    UnitPrice = request.UnitPrice,
+                    Description = request.Description ?? "Stok Açılış Fişi",
+                    Type = StockTransactionType.Opening,
+                    TransactionId = Guid.NewGuid(),
+                    ProductId = request.ProductId,
+                    WarehouseId = request.WarehouseId,
+                    CustomerId = request.CustomerId // Opsiyonel
+                };
+
+                await _stockRepository.AddAsync(openingTransaction, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+                return Result<string>.Success(request.DocumentNo, "Stok açılış fişi başarıyla kaydedildi.");
+            }
+
+            // 3. STOK HAREKETİ (Fiziksel Ayak)
             var stockTransaction = new StockTransaction
             {
                 DocumentNo = request.DocumentNo,
@@ -66,7 +95,7 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
             };
             await _stockRepository.AddAsync(stockTransaction, cancellationToken);
 
-            // 3. CARİ HAREKETİ - FATURA KAYDI (Alacak/Borç Oluşturma)
+            // 4. CARİ HAREKETİ - FATURA KAYDI (Alacak/Borç Oluşturma)
             // Alış (In) -> Biz borçlanırız, Cari alacaklanır (Credit)
             // Satış (Out) -> Biz alacaklanırız, Cari borçlanır (Debit)
             var invoiceEntry = new CustomerTransaction
@@ -74,14 +103,14 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
                 TransactionId = sharedTransactionId,
                 Date = request.TransactionDate,
                 Description = request.Description ?? (isStockIn ? "Mal Alım Faturası" : "Mal Satış Faturası"),
-                CustomerId = request.CustomerId,
+                CustomerId = request.CustomerId.Value,
                 Debit = isStockIn ? 0 : totalAmount,
                 Credit = isStockIn ? totalAmount : 0
             };
             invoiceEntry.Validate();
             await _customerRepository.AddAsync(invoiceEntry, cancellationToken);
 
-            // 4. EĞER PEŞİN ÖDEME VARSA (Kasa veya Banka)
+            // 5. EĞER PEŞİN ÖDEME VARSA (Kasa veya Banka)
             if (request.PaymentType != PaymentType.Credit)
             {
                 // A) CARİ HAREKETİ - ÖDEME KAYDI (Cariyi kapatan ters kayıt)
@@ -92,7 +121,7 @@ namespace MiniERP.Application.Features.StockTransactions.Commands.CreateStockTra
                     TransactionId = sharedTransactionId,
                     Date = request.TransactionDate,
                     Description = request.Description ?? (isStockIn ? "Peşin Ödeme (Stok)" : "Peşin Tahsilat (Stok)"),
-                    CustomerId = request.CustomerId,
+                    CustomerId = request.CustomerId.Value,
                     Debit = isStockIn ? totalAmount : 0, // Alışta borcumuz azalır
                     Credit = isStockIn ? 0 : totalAmount  // Satışta alacağımız azalır
                 };

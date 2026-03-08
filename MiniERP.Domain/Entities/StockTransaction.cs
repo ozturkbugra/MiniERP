@@ -19,7 +19,7 @@ namespace MiniERP.Domain.Entities
         public Product? Product { get; set; }
         public Guid WarehouseId { get; set; }
         public Warehouse? Warehouse { get; set; }
-        public Guid CustomerId { get; set; }
+        public Guid? CustomerId { get; set; }
         public Customer? Customer { get; set; }
     }
 }
