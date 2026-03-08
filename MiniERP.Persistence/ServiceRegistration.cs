@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MiniERP.Application.Interfaces;
 using MiniERP.Persistence.Context;
 using MiniERP.Persistence.IdentityModels;
+using MiniERP.Persistence.Interceptors;
 using MiniERP.Persistence.Services;
 using System.Reflection;
 
@@ -13,9 +14,19 @@ public static class ServiceRegistration
 {
     public static void AddPersistenceServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // 1. DbContext Kaydı
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+        // 1. Önce Interceptor'ı Singleton olarak kaydediyoruz
+        services.AddSingleton<AuditInterceptor>();
+
+        // 2. DbContext Kaydı ve Interceptor Bağlantısı
+        services.AddDbContext<AppDbContext>((sp, options) =>
+        {
+            var auditInterceptor = sp.GetRequiredService<AuditInterceptor>();
+
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
+                   .AddInterceptors(auditInterceptor);
+        });
+
+
 
         services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
         {

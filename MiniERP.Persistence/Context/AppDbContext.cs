@@ -36,7 +36,7 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     public DbSet<OrderDetail> OrderDetails { get; set; }
     public DbSet<Invoice> Invoices { get; set; }
     public DbSet<InvoiceDetail> InvoiceDetails { get; set; }
-
+    public DbSet<AuditLog> AuditLogs { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // Identity tablolarının (AspNetUsers vb.) oluşması için
