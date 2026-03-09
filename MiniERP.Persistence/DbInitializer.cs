@@ -84,6 +84,12 @@ public static class DbInitializer
                 AppPermissions.Cashes.Create,
                 AppPermissions.Cashes.Update,
                 AppPermissions.Cashes.Delete,
+
+                // Marka Yetkileri
+                AppPermissions.Brands.View,
+                AppPermissions.Brands.Create,
+                AppPermissions.Brands.Update,
+                AppPermissions.Brands.Delete,
             };
 
             var rolePermissions = allPermissions.Select(permission => new RolePermission
