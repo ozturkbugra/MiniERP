@@ -1,56 +1,61 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Orders.Commands.ApproveOrder;
 using MiniERP.Application.Features.Orders.Commands.CancelOrder;
 using MiniERP.Application.Features.Orders.Commands.CreateOrder;
 using MiniERP.Application.Features.Orders.Queries.GetAllOrders;
 using MiniERP.Application.Features.Orders.Queries.GetOrderById;
+using MiniERP.Domain.Enums;
 
-namespace MiniERP.WebAPI.Controllers
+namespace MiniERP.WebAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public sealed class OrdersController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class OrdersController : ControllerBase
+    private readonly IMediator _mediator;
+
+    public OrdersController(IMediator mediator) => _mediator = mediator;
+
+    [HttpGet]
+    [Authorize(Policy = AppPermissions.Orders.View)]
+    public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
     {
-        private readonly IMediator _mediator;
+        var response = await _mediator.Send(new GetOrdersQuery(), cancellationToken);
+        return response.IsSuccess ? Ok(response) : BadRequest(response);
+    }
 
-        public OrdersController(IMediator mediator)
-        {
-            _mediator = mediator;
-        }
+    [HttpGet("{id}")]
+    [Authorize(Policy = AppPermissions.Orders.View)]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new GetOrderByIdQuery(id), cancellationToken);
+        return response.IsSuccess ? Ok(response) : BadRequest(response);
+    }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
-        {
-            var response = await _mediator.Send(new GetOrdersQuery(), cancellationToken);
-            return response.IsSuccess ? Ok(response) : BadRequest(response);
-        }
+    [HttpPost]
+    [Authorize(Policy = AppPermissions.Orders.Create)]
+    public async Task<IActionResult> Create(CreateOrderCommand command, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(command, cancellationToken);
+        return response.IsSuccess ? Ok(response) : BadRequest(response);
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateOrderCommand command, CancellationToken cancellationToken)
-        {
-            var response = await _mediator.Send(command, cancellationToken);
-            return response.IsSuccess ? Ok(response) : BadRequest(response);
-        }
+    [HttpPost("{id}/approve")]
+    [Authorize(Policy = AppPermissions.Orders.Approve)]
+    public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new ApproveOrderCommand(id), cancellationToken);
+        return response.IsSuccess ? Ok(response) : BadRequest(response);
+    }
 
-        [HttpPost("{id}/approve")]
-        public async Task<IActionResult> Approve(Guid id, CancellationToken cancellationToken)
-        {
-            var response = await _mediator.Send(new ApproveOrderCommand(id), cancellationToken);
-            return response.IsSuccess ? Ok(response) : BadRequest(response);
-        }
-
-        [HttpPost("{id}/cancel")]
-        public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
-        {
-            var response = await _mediator.Send(new CancelOrderCommand(id), cancellationToken);
-            return response.IsSuccess ? Ok(response) : BadRequest(response);
-        }
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
-        {
-            return Ok(await _mediator.Send(new GetOrderByIdQuery(id), cancellationToken));
-        }
+    [HttpPost("{id}/cancel")]
+    [Authorize(Policy = AppPermissions.Orders.Cancel)]
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new CancelOrderCommand(id), cancellationToken);
+        return response.IsSuccess ? Ok(response) : BadRequest(response);
     }
 }

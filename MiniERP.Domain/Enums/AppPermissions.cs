@@ -87,5 +87,13 @@
             public const string Cancel = "Permissions.Invoices.Cancel";
             public const string Return = "Permissions.Invoices.Return";
         }
+
+        public static class Orders
+        {
+            public const string View = "Permissions.Orders.View";
+            public const string Create = "Permissions.Orders.Create";
+            public const string Approve = "Permissions.Orders.Approve";
+            public const string Cancel = "Permissions.Orders.Cancel";
+        }
     }
 }

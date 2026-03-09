@@ -109,6 +109,12 @@ public static class DbInitializer
                 AppPermissions.Invoices.Approve,
                 AppPermissions.Invoices.Cancel,
                 AppPermissions.Invoices.Return,
+
+                // Sipariş Yetkileri
+                AppPermissions.Orders.View,
+                AppPermissions.Orders.Create,
+                AppPermissions.Orders.Approve,
+                AppPermissions.Orders.Cancel,
             };
 
             var rolePermissions = allPermissions.Select(permission => new RolePermission
