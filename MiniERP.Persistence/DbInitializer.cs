@@ -90,6 +90,12 @@ public static class DbInitializer
                 AppPermissions.Brands.Create,
                 AppPermissions.Brands.Update,
                 AppPermissions.Brands.Delete,
+
+                // Kategori Yetkileri
+                AppPermissions.Categories.View,
+                AppPermissions.Categories.Create,
+                AppPermissions.Categories.Update,
+                AppPermissions.Categories.Delete,
             };
 
             var rolePermissions = allPermissions.Select(permission => new RolePermission
