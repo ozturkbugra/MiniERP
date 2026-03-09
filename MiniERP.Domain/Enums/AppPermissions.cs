@@ -95,5 +95,13 @@
             public const string Approve = "Permissions.Orders.Approve";
             public const string Cancel = "Permissions.Orders.Cancel";
         }
+
+        public static class Products
+        {
+            public const string View = "Permissions.Products.View";
+            public const string Create = "Permissions.Products.Create";
+            public const string Update = "Permissions.Products.Update";
+            public const string Delete = "Permissions.Products.Delete";
+        }
     }
 }
