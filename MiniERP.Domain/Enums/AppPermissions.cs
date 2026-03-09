@@ -126,5 +126,12 @@
             public const string Delete = "Permissions.Units.Delete";
         }
 
+        public static class Warehouses
+        {
+            public const string View = "Permissions.Warehouses.View";
+            public const string Create = "Permissions.Warehouses.Create";
+            public const string Update = "Permissions.Warehouses.Update";
+            public const string Delete = "Permissions.Warehouses.Delete";
+        }
     }
 }
