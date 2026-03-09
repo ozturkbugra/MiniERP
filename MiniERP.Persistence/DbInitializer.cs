@@ -126,6 +126,11 @@ public static class DbInitializer
                 AppPermissions.StockTransactions.View,
                 AppPermissions.StockTransactions.Create,
                 AppPermissions.StockTransactions.Delete,
+
+                // Hareket Yetkileri
+                AppPermissions.Transactions.View,
+                AppPermissions.Transactions.Create,
+                AppPermissions.Transactions.Cancel,
             };
 
             var rolePermissions = allPermissions.Select(permission => new RolePermission

@@ -111,5 +111,12 @@
             public const string Delete = "Permissions.StockTransactions.Delete";
         }
 
+        public static class Transactions
+        {
+            public const string View = "Permissions.Transactions.View";
+            public const string Create = "Permissions.Transactions.Create";
+            public const string Cancel = "Permissions.Transactions.Cancel";
+        }
+
     }
 }
