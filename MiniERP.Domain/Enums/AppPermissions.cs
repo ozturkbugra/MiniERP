@@ -70,5 +70,13 @@
             public const string Update = "Permissions.Categories.Update";
             public const string Delete = "Permissions.Categories.Delete";
         }
+
+        public static class Customers
+        {
+            public const string View = "Permissions.Customers.View";
+            public const string Create = "Permissions.Customers.Create";
+            public const string Update = "Permissions.Customers.Update";
+            public const string Delete = "Permissions.Customers.Delete";
+        }
     }
 }
