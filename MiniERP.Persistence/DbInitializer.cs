@@ -102,6 +102,13 @@ public static class DbInitializer
                 AppPermissions.Customers.Create,
                 AppPermissions.Customers.Update,
                 AppPermissions.Customers.Delete,
+
+                //Fatura Yetkileri
+                AppPermissions.Invoices.View,
+                AppPermissions.Invoices.Create,
+                AppPermissions.Invoices.Approve,
+                AppPermissions.Invoices.Cancel,
+                AppPermissions.Invoices.Return,
             };
 
             var rolePermissions = allPermissions.Select(permission => new RolePermission
