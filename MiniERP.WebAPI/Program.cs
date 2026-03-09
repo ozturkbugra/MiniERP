@@ -1,11 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MiniERP.Application;
 using MiniERP.Persistence;
-using MiniERP.Persistence.Context;
-using MiniERP.Persistence.IdentityModels;
 using MiniERP.WebAPI.Middlewares;
 using System.Text;
 

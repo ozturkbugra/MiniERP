@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Domain.Entities;
+using MiniERP.Domain.Enums;
 using MiniERP.Persistence.Context;
 using MiniERP.Persistence.IdentityModels;
 
@@ -12,16 +13,15 @@ public static class DbInitializer
     {
         var adminRoleName = "Admin";
 
-        // 1. Admin Rolü var mı? Yoksa oluştur.
+        // 1. Admin Rolü Kontrolü
         if (!await roleManager.RoleExistsAsync(adminRoleName))
         {
             await roleManager.CreateAsync(new ApplicationRole { Name = adminRoleName });
         }
 
-        // Rolün ID'sini alabilmek için veritabanından çekiyoruz (Birazdan yetki atarken lazım olacak)
         var adminRole = await roleManager.FindByNameAsync(adminRoleName);
 
-        // 2. Admin Kullanıcısı var mı? Yoksa oluştur.
+        // 2. Admin Kullanıcı Kontrolü
         var adminEmail = "admin@minierp.com";
         var adminUser = await userManager.FindByEmailAsync(adminEmail);
 
@@ -44,50 +44,45 @@ public static class DbInitializer
             }
         }
 
-        // 3. YETKİLERİ (RolePermissions) DOLDURMA ZAMANI!
-        // Eğer bu rolün üzerine atanmış hiçbir yetki yoksa, tüm anahtarları ver.
+        // 3. YETKİLERİ (RolePermissions) DOLDURMA
         if (adminRole != null && !await context.RolePermissions.AnyAsync(x => x.RoleId == adminRole.Id))
         {
-            // Controller listene göre tüm yetki matrisini oluşturuyoruz
             var allPermissions = new List<string>
             {
-                // Raporlar (Sadece Görme)
-                "Permissions.Reports.View",
+                // Raporlar
+                AppPermissions.Reports.View,
 
-                // Stok & Ürün Yönetimi
-                "Permissions.Products.View", "Permissions.Products.Create", "Permissions.Products.Update", "Permissions.Products.Delete",
-                "Permissions.Categories.View", "Permissions.Categories.Create", "Permissions.Categories.Update", "Permissions.Categories.Delete",
-                "Permissions.Brands.View", "Permissions.Brands.Create", "Permissions.Brands.Update", "Permissions.Brands.Delete",
-                "Permissions.Units.View", "Permissions.Units.Create", "Permissions.Units.Update", "Permissions.Units.Delete",
-                "Permissions.Warehouses.View", "Permissions.Warehouses.Create", "Permissions.Warehouses.Update", "Permissions.Warehouses.Delete",
-                "Permissions.StockTransactions.View", "Permissions.StockTransactions.Create", "Permissions.StockTransactions.Update", "Permissions.StockTransactions.Delete",
+                // Stok Yönetimi (Senin AppPermissions'daki Stocks sınıfı)
+                AppPermissions.Stocks.View,
+                AppPermissions.Stocks.Create,
+                AppPermissions.Stocks.Delete,
 
-                // Finans Yönetimi
-                "Permissions.Banks.View", "Permissions.Banks.Create", "Permissions.Banks.Update", "Permissions.Banks.Delete",
-                "Permissions.Cashes.View", "Permissions.Cashes.Create", "Permissions.Cashes.Update", "Permissions.Cashes.Delete",
-                "Permissions.Transactions.View", "Permissions.Transactions.Create", "Permissions.Transactions.Update", "Permissions.Transactions.Delete",
+                // Finans & Kasa
+                AppPermissions.Finance.View,
+                AppPermissions.Finance.Transaction,
 
-                // Müşteri & Satış
-                "Permissions.Customers.View", "Permissions.Customers.Create", "Permissions.Customers.Update", "Permissions.Customers.Delete",
-                "Permissions.Orders.View", "Permissions.Orders.Create", "Permissions.Orders.Update", "Permissions.Orders.Delete",
-                "Permissions.Invoices.View", "Permissions.Invoices.Create", "Permissions.Invoices.Update", "Permissions.Invoices.Delete",
+                // Kullanıcı Yönetimi
+                AppPermissions.Users.View,
+                AppPermissions.Users.Create,
+                AppPermissions.Users.Update,
+                AppPermissions.Users.Delete,
 
-                // Sistem Yönetimi
-                "Permissions.Roles.View", "Permissions.Roles.Create", "Permissions.Roles.Update", "Permissions.Roles.Delete",
-                "Permissions.Auths.View" // Gerekirse vs.
+                // Rol & Yetki Yönetimi
+                AppPermissions.Roles.View,
+                AppPermissions.Roles.Create,
+                AppPermissions.Roles.Update,
+                AppPermissions.Roles.Delete
             };
 
-            // String listesini bizim 'RolePermission' entity'mize dönüştürüyoruz
             var rolePermissions = allPermissions.Select(permission => new RolePermission
             {
                 RoleId = adminRole.Id,
                 Permission = permission,
                 CreatedDate = DateTime.Now,
-                CreatedBy = "System", 
+                CreatedBy = "System",
                 IsDeleted = false
             }).ToList();
 
-            // Veritabanına topluca basıyoruz
             await context.RolePermissions.AddRangeAsync(rolePermissions);
             await context.SaveChangesAsync();
         }

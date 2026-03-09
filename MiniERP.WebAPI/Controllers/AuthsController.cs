@@ -11,12 +11,13 @@ using MiniERP.Application.Features.Users.Commands.DeleteUser;
 using MiniERP.Application.Features.Users.Commands.UpdateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthsController : ControllerBase
+    public sealed class AuthsController : ControllerBase
     {
         private readonly IMediator _mediator;
 
@@ -25,45 +26,18 @@ namespace MiniERP.WebAPI.Controllers
             _mediator = mediator;
         }
 
+        // --- KULLANICI İŞLEMLERİ ---
+
         [HttpPost("Register")]
+        [Authorize(Policy = AppPermissions.Users.Create)]
         public async Task<IActionResult> Register(CreateUserCommand request, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(request, cancellationToken);
-
-            return Ok(response);
-        }
-
-        [HttpPost("AssignRole")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignRole(AssignRoleCommand request, CancellationToken cancellationToken)
-        {
-            var response = await _mediator.Send(request, cancellationToken);
-            return Ok(response);
-        }
-
-        [HttpDelete("remove-role")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> RemoveRoleFromUser(RemoveRoleFromUserCommand request)
-        {
-            var response = await _mediator.Send(request);
-            return Ok(response);
-        }
-
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login(LoginCommand request, CancellationToken cancellationToken)
-        {
-            var response = await _mediator.Send(request, cancellationToken);
-
-            if (!response.IsSuccess)
-            {
-                return BadRequest(response);
-            }
-
             return Ok(response);
         }
 
         [HttpGet("GetAll")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Policy = AppPermissions.Users.View)]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new GetAllUsersQuery(), cancellationToken);
@@ -71,7 +45,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpGet("GetById/{id}")]
-        [Authorize]
+        [Authorize(Policy = AppPermissions.Users.View)]
         public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new GetUserByIdQuery(id), cancellationToken);
@@ -79,35 +53,60 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize]
+        [Authorize(Policy = AppPermissions.Users.Update)]
         public async Task<IActionResult> Update(Guid id, UpdateUserCommand request, CancellationToken cancellationToken)
         {
             if (id.ToString() != request.Id)
             {
-                return BadRequest("URL'deki ID ile gönderilen kullanıcı verisindeki ID uyuşmuyor.");
+                return BadRequest("ID uyuşmazlığı var.");
             }
-
             var response = await _mediator.Send(request, cancellationToken);
-
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
 
-        [HttpDelete("{id}")] 
-        [Authorize] 
+        [HttpDelete("{id}")]
+        [Authorize(Policy = AppPermissions.Users.Delete)]
         public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
         {
             var response = await _mediator.Send(new DeleteUserCommand(id), cancellationToken);
             return Ok(response);
         }
 
-        [HttpPost("change-password")]
-        [Authorize] 
-        public async Task<IActionResult> ChangePassword(ChangePasswordCommand request)
+        // --- ROL ATAMA İŞLEMLERİ ---
+
+        [HttpPost("AssignRole")]
+        [Authorize(Policy = AppPermissions.Roles.Update)]
+        public async Task<IActionResult> AssignRole(AssignRoleCommand request, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(request, cancellationToken);
+            return Ok(response);
+        }
+
+        [HttpDelete("remove-role")]
+        [Authorize(Policy = AppPermissions.Roles.Update)]
+        public async Task<IActionResult> RemoveRoleFromUser(RemoveRoleFromUserCommand request)
         {
             var response = await _mediator.Send(request);
             return Ok(response);
         }
 
+        // --- KİMLİK DOĞRULAMA (HERKESE AÇIK VEYA STANDART ÜYE) ---
+
+        [HttpPost("Login")]
+        [AllowAnonymous] // Giriş yapmak için giriş yapmış olmak gerekmez
+        public async Task<IActionResult> Login(LoginCommand request, CancellationToken cancellationToken)
+        {
+            var response = await _mediator.Send(request, cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
+        }
+
+        [HttpPost("change-password")]
+        [Authorize] // Sadece giriş yapmış olması yeterli, her kullanıcı kendi şifresini değiştirebilir.
+        public async Task<IActionResult> ChangePassword(ChangePasswordCommand request)
+        {
+            var response = await _mediator.Send(request);
+            return Ok(response);
+        }
 
         [HttpPost("logout")]
         [Authorize]
