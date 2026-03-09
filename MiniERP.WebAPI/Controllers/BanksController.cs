@@ -1,19 +1,19 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Banks.Commands.CreateBank;
 using MiniERP.Application.Features.Banks.Commands.DeleteBank;
 using MiniERP.Application.Features.Banks.Commands.UpdateBank;
 using MiniERP.Application.Features.Banks.Queries.GetAllBanks;
 using MiniERP.Application.Features.Banks.Queries.GetBankById;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
-    public class BanksController : ControllerBase
+    [Authorize] // Temel giriş kontrolü
+    public sealed class BanksController : ControllerBase
     {
         private readonly IMediator _mediator;
 
@@ -23,6 +23,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpGet]
+        [Authorize(Policy = AppPermissions.Banks.View)]
         public async Task<IActionResult> GetAll()
         {
             var response = await _mediator.Send(new GetAllBanksQuery());
@@ -30,6 +31,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = AppPermissions.Banks.View)]
         public async Task<IActionResult> GetById(Guid id)
         {
             var response = await _mediator.Send(new GetBankByIdQuery(id));
@@ -37,6 +39,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = AppPermissions.Banks.Create)]
         public async Task<IActionResult> Create(CreateBankCommand command)
         {
             var response = await _mediator.Send(command);
@@ -44,6 +47,7 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = AppPermissions.Banks.Update)]
         public async Task<IActionResult> Update(Guid id, UpdateBankCommand command)
         {
             if (id != command.Id)
@@ -56,12 +60,11 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = AppPermissions.Banks.Delete)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var response = await _mediator.Send(new DeleteBankCommand(id));
             return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
-
-
     }
 }

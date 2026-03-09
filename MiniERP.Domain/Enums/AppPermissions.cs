@@ -38,5 +38,21 @@
             public const string Update = "Permissions.Roles.Update";
             public const string Delete = "Permissions.Roles.Delete";
         }
+
+        public static class Banks
+        {
+            public const string View = "Permissions.Banks.View";
+            public const string Create = "Permissions.Banks.Create";
+            public const string Update = "Permissions.Banks.Update";
+            public const string Delete = "Permissions.Banks.Delete";
+        }
+
+        public static class Cashes
+        {
+            public const string View = "Permissions.Cashes.View";
+            public const string Create = "Permissions.Cashes.Create";
+            public const string Update = "Permissions.Cashes.Update";
+            public const string Delete = "Permissions.Cashes.Delete";
+        }
     }
 }

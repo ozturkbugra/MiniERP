@@ -71,7 +71,19 @@ public static class DbInitializer
                 AppPermissions.Roles.View,
                 AppPermissions.Roles.Create,
                 AppPermissions.Roles.Update,
-                AppPermissions.Roles.Delete
+                AppPermissions.Roles.Delete,
+
+                // Banka Yetkileri
+                AppPermissions.Banks.View,
+                AppPermissions.Banks.Create,
+                AppPermissions.Banks.Update,
+                AppPermissions.Banks.Delete,
+
+                // Kasa Yetkileri
+                AppPermissions.Cashes.View,
+                AppPermissions.Cashes.Create,
+                AppPermissions.Cashes.Update,
+                AppPermissions.Cashes.Delete,
             };
 
             var rolePermissions = allPermissions.Select(permission => new RolePermission
