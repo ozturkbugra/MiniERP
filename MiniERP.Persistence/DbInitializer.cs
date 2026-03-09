@@ -131,6 +131,11 @@ public static class DbInitializer
                 AppPermissions.Transactions.View,
                 AppPermissions.Transactions.Create,
                 AppPermissions.Transactions.Cancel,
+                
+                //Birim Yetkileri
+                AppPermissions.Units.Create,
+                AppPermissions.Units.Update,
+                AppPermissions.Units.Delete
             };
 
             var rolePermissions = allPermissions.Select(permission => new RolePermission

@@ -118,5 +118,13 @@
             public const string Cancel = "Permissions.Transactions.Cancel";
         }
 
+        public static class Units
+        {
+            public const string View = "Permissions.Units.View";
+            public const string Create = "Permissions.Units.Create";
+            public const string Update = "Permissions.Units.Update";
+            public const string Delete = "Permissions.Units.Delete";
+        }
+
     }
 }
