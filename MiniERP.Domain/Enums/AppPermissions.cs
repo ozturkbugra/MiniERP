@@ -1,0 +1,26 @@
+﻿namespace MiniERP.Domain.Enums
+{
+    public static class AppPermissions
+    {
+        // Raporlama Yetkileri
+        public static class Reports
+        {
+            public const string View = "Permissions.Reports.View";
+        }
+
+        // Stok Yetkileri
+        public static class Stocks
+        {
+            public const string View = "Permissions.Stocks.View";
+            public const string Create = "Permissions.Stocks.Create";
+            public const string Delete = "Permissions.Stocks.Delete";
+        }
+
+        // Finans/Kasa Yetkileri
+        public static class Finance
+        {
+            public const string View = "Permissions.Finance.View";
+            public const string Transaction = "Permissions.Finance.Transaction"; // Ödeme, Tahsilat, Virman yapabilme
+        }
+    }
+}

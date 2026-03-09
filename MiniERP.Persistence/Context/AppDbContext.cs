@@ -39,6 +39,7 @@ public sealed class AppDbContext : IdentityDbContext<ApplicationUser, Applicatio
     public DbSet<AuditLog> AuditLogs { get; set; }
 
     public DbSet<InvalidToken> InvalidTokens { get; set; }
+    public DbSet<RolePermission> RolePermissions { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // Identity tablolarının (AspNetUsers vb.) oluşması için

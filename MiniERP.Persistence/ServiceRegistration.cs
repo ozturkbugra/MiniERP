@@ -1,10 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniERP.Application.Interfaces;
 using MiniERP.Persistence.Context;
 using MiniERP.Persistence.IdentityModels;
 using MiniERP.Persistence.Interceptors;
+using MiniERP.Persistence.Security;
 using MiniERP.Persistence.Services;
 using System.Reflection;
 
@@ -45,5 +49,29 @@ public static class ServiceRegistration
         services.AddScoped(typeof(IRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAppUserService, AppUserService>();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+    }
+
+    public static async Task SeedDatabaseAsync(this IApplicationBuilder app)
+    {
+        // Kapsam (Scope) oluşturup servisleri çekiyoruz
+        using (var scope = app.ApplicationServices.CreateScope())
+        {
+            var services = scope.ServiceProvider;
+            try
+            {
+                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
+                var context = services.GetRequiredService<AppDbContext>();
+
+                // DbInitializer'ı çağırıyoruz
+                await DbInitializer.SeedAsync(userManager, roleManager, context);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Hata oluştu: {ex.Message}");
+            }
+        }
     }
 }

@@ -129,8 +129,24 @@ public sealed class AuthService : IAuthService
             return Result<string>.Failure("Kullanıcı bulunamadı veya şifre hatalı.");
         }
 
+        // 1. Kullanıcının rollerini al
         var roles = await _userManager.GetRolesAsync(user);
-        var token = await _jwtProvider.CreateTokenAsync(user.Id.ToString(), user.Email!, roles);
+
+        // 2. BEYİN BURASI: Bu rollere ait ID'leri bul 
+        var roleIds = await _context.Roles
+            .Where(r => roles.Contains(r.Name!))
+            .Select(r => r.Id)
+            .ToListAsync();
+
+        // 3. Role ID'lerini kullanarak Yetkileri (Permissions) çek
+        var permissions = await _context.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId) && !rp.IsDeleted)
+            .Select(rp => rp.Permission)
+            .Distinct() 
+            .ToListAsync();
+
+        // 4. Token'ı 4 parametre ile üret (Yetkileri de gönderiyoruz)
+        var token = await _jwtProvider.CreateTokenAsync(user.Id.ToString(), user.Email!, roles, permissions);
 
         return Result<string>.Success(token, "Giriş başarılı!");
     }

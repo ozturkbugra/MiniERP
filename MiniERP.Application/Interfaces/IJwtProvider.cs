@@ -2,5 +2,5 @@
 
 public interface IJwtProvider
 {
-    Task<string> CreateTokenAsync(string userId, string email, IList<string> roles);
+    Task<string> CreateTokenAsync(string userId, string email, IList<string> roles, IList<string> permissions);
 }

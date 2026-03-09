@@ -1,7 +1,8 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Reports.Queries.GetDashboardSummary;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -16,6 +17,7 @@ namespace MiniERP.WebAPI.Controllers
             _mediator = mediator;
         }
 
+        [Authorize(Policy = AppPermissions.Reports.View)]
         [HttpGet("dashboard-summary")]
         public async Task<IActionResult> GetDashboardSummary(CancellationToken cancellationToken)
         {

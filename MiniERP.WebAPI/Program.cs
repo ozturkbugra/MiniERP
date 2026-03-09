@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MiniERP.Application;
 using MiniERP.Persistence;
+using MiniERP.Persistence.Context;
 using MiniERP.Persistence.IdentityModels;
 using MiniERP.WebAPI.Middlewares;
 using System.Text;
@@ -90,7 +91,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Sıralama önemli. Önce kimlik doğrulanır (Kimsin?), sonra yetki kontrol edilir (Neye yetkin var?).
 app.UseAuthentication();
 
 app.UseMiddleware<JwtBlacklistMiddleware>();
@@ -99,21 +99,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>(); // Kendi manager'ın veya direkt RoleManager
-
-        await DbInitializer.SeedAsync(userManager, roleManager);
-    }
-    catch (Exception ex)
-    {
-        // Loglama yapılabilir
-    }
-}
-
+await app.SeedDatabaseAsync();
 
 app.Run();

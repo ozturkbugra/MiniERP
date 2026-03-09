@@ -16,7 +16,7 @@ public sealed class JwtProvider : IJwtProvider
         _configuration = configuration;
     }
 
-    public async Task<string> CreateTokenAsync(string userId, string email, IList<string> roles)
+    public async Task<string> CreateTokenAsync(string userId, string email, IList<string> roles, IList<string> permissions) 
     {
         // 1. Tokenın içine koyacağımız bilgiler
         var claims = new List<Claim>
@@ -30,6 +30,14 @@ public sealed class JwtProvider : IJwtProvider
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+
+        if (permissions != null && permissions.Any())
+        {
+            foreach (var permission in permissions)
+            {
+                claims.Add(new Claim("Permission", permission));
+            }
         }
 
         // 2. appsettings.json dosyasından ayarları çekiyoruz
