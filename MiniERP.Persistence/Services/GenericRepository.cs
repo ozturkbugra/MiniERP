@@ -107,5 +107,17 @@ namespace MiniERP.Persistence.Services
 
             return await query.FirstOrDefaultAsync(x => x.Id == id && !x.IsDeleted, cancellationToken);
         }
+
+        public async Task<List<T>> GetAllAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet.Where(expression);
+
+            if (includes != null && includes.Any())
+            {
+                query = includes.Aggregate(query, (current, include) => current.Include(include));
+            }
+
+            return await query.ToListAsync(cancellationToken);
+        }
     }
 }

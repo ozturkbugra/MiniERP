@@ -29,4 +29,6 @@ public interface IRepository<T> where T : BaseEntity
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
 
     Task<T?> GetByIdWithIncludesAsync(Guid id, CancellationToken cancellationToken = default,params Expression<Func<T, object>>[] includes);
+
+    Task<List<T>> GetAllAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken, params Expression<Func<T, object>>[] includes);
 }
