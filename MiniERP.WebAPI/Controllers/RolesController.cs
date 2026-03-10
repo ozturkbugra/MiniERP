@@ -5,6 +5,7 @@ using MiniERP.Application.Features.Roles.Commands.AssignPermissions;
 using MiniERP.Application.Features.Roles.Commands.CreateRoles;
 using MiniERP.Application.Features.Roles.Commands.DeleteRoles;
 using MiniERP.Application.Features.Roles.Commands.UpdateRoles;
+using MiniERP.Application.Features.Roles.Queries.GetAllPermissions;
 using MiniERP.Application.Features.Roles.Queries.GetAllRoles;
 using MiniERP.Application.Features.Roles.Queries.GetPermissionsByRoleId;
 using MiniERP.Application.Features.Roles.Queries.GetRoleById;
@@ -79,6 +80,14 @@ public sealed class RolesController : ControllerBase
     public async Task<IActionResult> GetPermissionsByRoleId(Guid roleId, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(new GetPermissionsByRoleIdQuery(roleId), cancellationToken);
+        return response.IsSuccess ? Ok(response) : BadRequest(response);
+    }
+
+    [HttpGet("GetAllPermissions")]
+    [Authorize(Policy = AppPermissions.Roles.View)]
+    public async Task<IActionResult> GetAllPermissions(CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(new GetAllPermissionsQuery(), cancellationToken);
         return response.IsSuccess ? Ok(response) : BadRequest(response);
     }
 }
