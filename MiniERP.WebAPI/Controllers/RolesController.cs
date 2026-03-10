@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MiniERP.Application.Features.Roles.Commands.AssignPermissions;
 using MiniERP.Application.Features.Roles.Commands.CreateRoles;
 using MiniERP.Application.Features.Roles.Commands.DeleteRoles;
 using MiniERP.Application.Features.Roles.Commands.UpdateRoles;
@@ -62,5 +63,13 @@ public sealed class RolesController : ControllerBase
     {
         var response = await _mediator.Send(new DeleteRoleCommand(id), cancellationToken);
         return Ok(response);
+    }
+
+    [HttpPost("AssignPermissions")]
+    [Authorize(Policy = AppPermissions.Roles.Update)]
+    public async Task<IActionResult> AssignPermissions([FromBody] AssignPermissionsToRoleCommand command,CancellationToken cancellationToken)
+    {
+        var response = await _mediator.Send(command, cancellationToken);
+        return response.IsSuccess ? Ok(response) : BadRequest(response);
     }
 }
