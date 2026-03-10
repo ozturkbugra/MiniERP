@@ -26,4 +26,6 @@ public interface IAuthService
 
     Task<Result<string>> ChangePasswordAsync(ChangePasswordCommand request, CancellationToken cancellationToken);
     Task<string> LogoutAsync();
+
+    Task<Result<List<string>>> GetMyPermissionsAsync(string userId, CancellationToken cancellationToken);
 }

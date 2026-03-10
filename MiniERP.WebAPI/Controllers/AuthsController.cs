@@ -10,8 +10,10 @@ using MiniERP.Application.Features.Users.Commands.CreateUser;
 using MiniERP.Application.Features.Users.Commands.DeleteUser;
 using MiniERP.Application.Features.Users.Commands.UpdateUser;
 using MiniERP.Application.Features.Users.Queries.GetAllUsers;
+using MiniERP.Application.Features.Users.Queries.GetMyPermissions;
 using MiniERP.Application.Features.Users.Queries.GetUserById;
 using MiniERP.Domain.Enums;
+using System.Security.Claims;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -114,6 +116,20 @@ namespace MiniERP.WebAPI.Controllers
         {
             var response = await _mediator.Send(new LogoutCommand());
             return Ok(new { message = response });
+        }
+
+        [HttpGet("GetMyPermissions")]
+        [Authorize]
+        public async Task<IActionResult> GetMyPermissions(CancellationToken cancellationToken)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var parsedUserId))
+            {
+                return Unauthorized(new { Message = "Kullanıcı kimliği doğrulanamadı. Lütfen tekrar giriş yapın." });
+            }
+            var response = await _mediator.Send(new GetMyPermissionsQuery(parsedUserId), cancellationToken);
+            return response.IsSuccess ? Ok(response) : BadRequest(response);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace MiniERP.Application.Features.Roles.Commands.AssignPermissions
     {
         private readonly IRepository<RolePermission> _rolePermissionRepository;
         private readonly IRoleService _roleService;
-        private readonly IUnitOfWork _unitOfWork; // Mimariyi bozmamak için Save işlemini buradan yapıyoruz
+        private readonly IUnitOfWork _unitOfWork; 
 
         public AssignPermissionsToRoleHandler(
             IRepository<RolePermission> rolePermissionRepository,

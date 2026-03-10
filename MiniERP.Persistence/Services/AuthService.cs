@@ -261,4 +261,39 @@ public sealed class AuthService : IAuthService
 
         return "Başarıyla çıkış yapıldı.";
     }
+
+    public async Task<Result<List<string>>> GetMyPermissionsAsync(string userId, CancellationToken cancellationToken)
+    {
+        // 1. Kullanıcıyı bul
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+        {
+            return Result<List<string>>.Failure("Kullanıcı bulunamadı.");
+        }
+
+        // 2. Kullanıcının rollerini al
+        var userRoleNames = await _userManager.GetRolesAsync(user);
+        if (!userRoleNames.Any())
+        {
+            return Result<List<string>>.Success(new List<string>(),"");
+        }
+
+        var roleIds = await _context.Roles
+            .Where(r => userRoleNames.Contains(r.Name!))
+            .Select(r => r.Id)
+            .ToListAsync(cancellationToken);
+
+        if (!roleIds.Any())
+        {
+            return Result<List<string>>.Success(new List<string>(),"");
+        }
+
+        var permissions = await _context.RolePermissions
+            .Where(rp => roleIds.Contains(rp.RoleId) && !rp.IsDeleted)
+            .Select(rp => rp.Permission)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return Result<List<string>>.Success(permissions,"");
+    }
 }
