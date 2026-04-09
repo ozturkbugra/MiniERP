@@ -47,13 +47,59 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
 
         <div className="header-right">
           <div className="header-actions-desktop">
-            {/* Bildirimler, Mesajlar vb. Dropdownlar (Bootstrap JS ile çalışır) */}
+            {/* Bildirimler (Dolduruldu) */}
             <div className="header-action-wrap dropdown notification-dropdown">
               <button className="header-action dropdown-toggle" data-bs-toggle="dropdown">
                 <i className="bi bi-bell"></i>
                 <span className="header-badge">4</span>
               </button>
-              {/* Dropdown içeriği buraya gelecek... */}
+              
+              <div className="dropdown-menu dropdown-menu-end notification-menu">
+                <div className="notification-header">
+                  <div>
+                    <h6>Notifications</h6>
+                    <span>4 unread</span>
+                  </div>
+                  <a href="#" data-notification-action="mark-all-read">Mark all read</a>
+                </div>
+                <div className="notification-summary">
+                  <a href="#" className="notification-summary-item">
+                    <strong>7</strong>
+                    <span>Today</span>
+                  </a>
+                  <a href="#" className="notification-summary-item">
+                    <strong>23</strong>
+                    <span>This week</span>
+                  </a>
+                  <a href="#" className="notification-summary-item">
+                    <strong>3</strong>
+                    <span>Approvals</span>
+                  </a>
+                </div>
+                <div className="notification-list">
+                  <div className="notification-item unread">
+                    <span className="notification-dot"></span>
+                    <div className="notification-icon info"><i className="bi bi-rocket-takeoff"></i></div>
+                    <div className="notification-content">
+                      <div className="notification-title">Deploy ready</div>
+                      <div className="notification-text">Sprint release passed QA validation.</div>
+                      <span className="notification-time">5m ago</span>
+                    </div>
+                  </div>
+                  <div className="notification-item unread">
+                    <span className="notification-dot"></span>
+                    <img src="/assets/img/avatars/avatar-2.webp" alt="" className="notification-avatar" />
+                    <div className="notification-content">
+                      <div className="notification-title">Mia sent feedback</div>
+                      <div className="notification-text">Please review updated dashboard spacing.</div>
+                      <span className="notification-time">21m ago</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="notification-footer">
+                  <a href="#">Open notification center <i className="bi bi-arrow-right"></i></a>
+                </div>
+              </div>
             </div>
 
             {/* Tema Butonu */}
@@ -61,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
               <i className={isDarkMode ? "ph-light ph-sun" : "ph-light ph-moon-stars"}></i>
             </button>
 
-            {/* Kullanıcı Profili */}
+            {/* Kullanıcı Profili (Dolduruldu) */}
             <div className="header-action-wrap dropdown user-dropdown">
               <button className="dropdown-toggle user-trigger" data-bs-toggle="dropdown">
                 <img src="/assets/img/profile-img.webp" alt="User" className="user-avatar" />
@@ -70,13 +116,40 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
                   <span className="user-role">Developer</span>
                 </div>
               </button>
+              
               <div className="dropdown-menu dropdown-menu-end user-menu">
-                {/* Profil menü linkleri... */}
+                <div className="user-menu-header">
+                  <img src="/assets/img/profile-img.webp" alt="User" className="user-menu-avatar" />
+                  <div className="user-menu-info">
+                    <div className="user-menu-name">Buğra Öztürk</div>
+                    <div className="user-menu-email">admin@bugraozturk.com.tr</div>
+                  </div>
+                </div>
+                <div className="user-menu-body">
+                  <a className="user-menu-item" href="/profile">
+                    <i className="bi bi-person"></i>
+                    <span>My Profile</span>
+                  </a>
+                  <a className="user-menu-item" href="/settings">
+                    <i className="bi bi-sliders"></i>
+                    <span>Preferences</span>
+                  </a>
+                  <a className="user-menu-item" href="/activity">
+                    <i className="bi bi-activity"></i>
+                    <span>Activity Log</span>
+                  </a>
+                </div>
+                <div className="user-menu-footer">
+                  <a className="user-menu-logout" href="/login">
+                    <i className="bi bi-box-arrow-right"></i>
+                    <span>Sign Out</span>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* MOBİL AKSİYONLAR - Arama ve More butonu */}
+          {/* MOBİL AKSİYONLAR */}
           <div className="header-actions-mobile">
             <button 
               className="header-action search-toggle" 
@@ -94,7 +167,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
         </div>
       </header>
 
-      {/* MOBİL ARAMA KATMANI - State'e göre açılır */}
+      {/* MOBİL ARAMA KATMANI */}
       <div className={`mobile-search ${isMobileSearchOpen ? 'active' : ''}`}>
         <form className="search-form">
           <input type="search" placeholder="Search..." />
@@ -102,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
         </form>
       </div>
 
-      {/* MOBİL HEADER MENÜ - State'e göre açılır */}
+      {/* MOBİL HEADER MENÜ */}
       <div className={`mobile-header-menu ${isMobileMenuOpen ? 'active' : ''}`}>
         <div className="mobile-header-menu-content">
           <button className="mobile-menu-item theme-toggle" onClick={toggleTheme}>
