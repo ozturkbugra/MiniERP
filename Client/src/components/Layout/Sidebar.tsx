@@ -1,75 +1,76 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom'; // SPA davranışı için NavLink kullanıyoruz
+import { useAuthStore } from '../../store/useAuthStore'; // Az önce oluşturduğumuz beyin
 
 interface SidebarProps {
   onSidebarToggle: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
-  // Mevcut yolu alıyoruz (Örn: /users veya /accounting)
-  const currentPath = window.location.pathname;
-
-  // Linkin aktif olup olmadığını kontrol eden küçük bir yardımcı fonksiyon
-  const isActive = (path: string) => currentPath === path ? 'active' : '';
+  // Store'dan kullanıcı bilgilerini ve yetki kontrol fonksiyonunu çekiyoruz
+  const { user, hasPermission, logout } = useAuthStore();
 
   return (
     <aside className="sidebar">
       <div className="sidebar-shell">
-        <button 
-          className="sidebar-close" 
-          type="button" 
-          aria-label="Close sidebar" 
-          onClick={onSidebarToggle}
-        >
+        <button className="sidebar-close" type="button" onClick={onSidebarToggle}>
           <i className="bi bi-x-lg"></i>
         </button>
 
         <nav className="sidebar-nav">
           <ul className="nav-menu">
-
+            {/* Dashboard genelde herkese açıktır ama istersen ona da yetki koyarız */}
             <li className="nav-item">
-              {/* isActive fonksiyonu ile path kontrolü yapıyoruz */}
-              <a className={`nav-link ${isActive('/')}`} href="/">
+              <NavLink to="/" className="nav-link">
                 <span className="nav-icon"><i className="ph-light ph-squares-four"></i></span>
                 <span className="nav-text">Dashboard</span>
-                <span className="nav-meta">Home</span>
-              </a>
+              </NavLink>
             </li>
 
             <li className="nav-heading"><span>Yönetim</span></li>
 
-            <li className="nav-item">
-              <a className={`nav-link ${isActive('/users')}`} href="/users">
-                <span className="nav-icon"><i className="ph-light ph-users-three"></i></span>
-                <span className="nav-text">Kullanıcılar</span>
-              </a>
-            </li>
+            {/* KULLANICI YÖNETİMİ: Sadece yetkisi olan görsün */}
+            {hasPermission('AppPermissions.Users.View') && (
+              <li className="nav-item">
+                <NavLink to="/users" className="nav-link">
+                  <span className="nav-icon"><i className="ph-light ph-users-three"></i></span>
+                  <span className="nav-text">Kullanıcılar</span>
+                </NavLink>
+              </li>
+            )}
 
-            <li className="nav-item">
-              <a className={`nav-link ${isActive('/accounting')}`} href="/accounting">
-                <span className="nav-icon"><i className="ph-light ph-receipt"></i></span>
-                <span className="nav-text">Muhasebe</span>
-              </a>
-            </li>
-
+            {/* MUHASEBE: Sadece yetkisi olan görsün */}
+            {hasPermission('AppPermissions.Accounting.View') && (
+              <li className="nav-item">
+                <NavLink to="/accounting" className="nav-link">
+                  <span className="nav-icon"><i className="ph-light ph-receipt"></i></span>
+                  <span className="nav-text">Muhasebe</span>
+                </NavLink>
+              </li>
+            )}
           </ul>
         </nav>
 
+        {/* Sidebar Footer - Dinamik Kullanıcı Bilgileri */}
         <div className="sidebar-footer">
           <div className="sidebar-account">
-            <a href="/profile" className={`sidebar-account-main ${isActive('/profile')}`}>
-              <img src="/assets/img/profile-img.webp" alt="User" className="sidebar-account-avatar" />
+            <NavLink to="/profile" className="sidebar-account-main">
+              {/* Kullanıcı fotoğrafı yoksa default avatar basıyoruz */}
+              <img src={user?.userName || "/assets/img/profile-img.webp"} alt="User" className="sidebar-account-avatar" />
               <div className="sidebar-account-meta">
-                <div className="sidebar-account-name">Buğra Öztürk</div>
-                <div className="sidebar-account-role">Admin</div>
+                {/* İsim artık store'dan geliyor */}
+                <div className="sidebar-account-name">{user?.userName || 'Misafir'}</div>
+                <div className="sidebar-account-role">{user?.role || 'Yetkisiz'}</div>
               </div>
-            </a>
+            </NavLink>
             <div className="sidebar-account-actions">
-              <a href="/settings" className={`sidebar-account-action ${isActive('/settings')}`} title="Settings">
+              <NavLink to="/settings" className="sidebar-account-action" title="Settings">
                 <i className="bi bi-gear"></i>
-              </a>
-              <a href="/login" className="sidebar-account-action sidebar-account-logout" title="Logout">
+              </NavLink>
+              {/* Çıkış fonksiyonunu bağladık */}
+              <button onClick={logout} className="sidebar-account-action sidebar-account-logout" title="Logout" style={{background: 'none', border: 'none'}}>
                 <i className="bi bi-box-arrow-right"></i>
-              </a>
+              </button>
             </div>
           </div>
         </div>
