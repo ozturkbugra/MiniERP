@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Outlet } from 'react-router-dom'; // Bunu ekledik
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 
-const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// Artık 'children' almasına gerek yok, Outlet o işi hallediyor
+const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('mini-erp-sidebar');
     return saved !== null ? JSON.parse(saved) : true;
@@ -16,7 +18,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const body = document.body;
     const isMobile = window.innerWidth <= 991;
 
-    // Senin o meşhur class mantığın
     if (isMobile) {
       if (isSidebarOpen) {
         body.classList.add('sidebar-open');
@@ -40,7 +41,6 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Header onSidebarToggle={toggleSidebar} />
       <Sidebar onSidebarToggle={toggleSidebar} />
       
-      {/* Mobilde sidebar açıkken arkaya basınca kapansın diye overlay */}
       <div 
         className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} 
         onClick={toggleSidebar}
@@ -48,7 +48,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       <main className="main">
         <div className="main-content">
-          {children} 
+          {/* ESKİ: {children} -> YENİ: <Outlet /> */}
+          <Outlet /> 
         </div>
         <footer className="footer">
           <div className="footer-content">
