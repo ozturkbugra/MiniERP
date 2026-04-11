@@ -3,7 +3,7 @@ import { useAuthStore } from '../store/useAuthStore';
 
 // Kendi axios instance'ımızı oluşturuyoruz
 const api = axios.create({
-  baseURL: 'https://api.minierp.com/api', // Senin .NET API adresin buraya gelecek
+  baseURL: 'https://localhost:7006/api', // Senin .NET API adresin buraya gelecek
   headers: {
     'Content-Type': 'application/json',
   },

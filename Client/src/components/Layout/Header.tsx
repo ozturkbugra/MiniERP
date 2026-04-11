@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from 'react';
+import { useAuthStore } from '../../store/useAuthStore'; 
 
 interface HeaderProps {
   onSidebarToggle: () => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
-  // State'ler: Tema, Mobil Arama ve Mobil Menü kontrolü
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('mini-erp-theme') === 'dark');
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+  const { logout, user } = useAuthStore();
+
+  // Merkezi Çıkış Fonksiyonu
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (window.confirm("Çıkış yapmak istediğine emin misin aga?")) {
+      await logout();
+    }
+  };
 
   useEffect(() => {
     const html = document.documentElement;
@@ -24,7 +33,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
     <>
       <header className="header">
         <div className="header-left">
-          <button className="sidebar-toggle" title="Toggle Sidebar" onClick={onSidebarToggle}>
+          <button className="sidebar-toggle" title="Menüyü Aç/Kapat" onClick={onSidebarToggle}>
             <span className="menu-lines"><span></span><span></span><span></span></span>
           </button>
 
@@ -40,14 +49,14 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
         <div className="header-search-wrap">
           <form className="search-form">
             <i className="bi bi-search search-icon"></i>
-            <input type="search" placeholder="Search projects, invoices, users..." />
+            <input type="search" placeholder="Proje, fatura veya kullanıcı ara..." />
             <kbd className="search-shortcut">/</kbd>
           </form>
         </div>
 
         <div className="header-right">
           <div className="header-actions-desktop">
-            {/* Bildirimler (Dolduruldu) */}
+            {/* Bildirimler */}
             <div className="header-action-wrap dropdown notification-dropdown">
               <button className="header-action dropdown-toggle" data-bs-toggle="dropdown">
                 <i className="bi bi-bell"></i>
@@ -57,23 +66,23 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
               <div className="dropdown-menu dropdown-menu-end notification-menu">
                 <div className="notification-header">
                   <div>
-                    <h6>Notifications</h6>
-                    <span>4 unread</span>
+                    <h6>Bildirimler</h6>
+                    <span>4 okunmamış</span>
                   </div>
-                  <a href="#" data-notification-action="mark-all-read">Mark all read</a>
+                  <a href="#" data-notification-action="mark-all-read">Tümünü okundu işaretle</a>
                 </div>
                 <div className="notification-summary">
                   <a href="#" className="notification-summary-item">
                     <strong>7</strong>
-                    <span>Today</span>
+                    <span>Bugün</span>
                   </a>
                   <a href="#" className="notification-summary-item">
                     <strong>23</strong>
-                    <span>This week</span>
+                    <span>Bu Hafta</span>
                   </a>
                   <a href="#" className="notification-summary-item">
                     <strong>3</strong>
-                    <span>Approvals</span>
+                    <span>Onaylar</span>
                   </a>
                 </div>
                 <div className="notification-list">
@@ -81,69 +90,60 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
                     <span className="notification-dot"></span>
                     <div className="notification-icon info"><i className="bi bi-rocket-takeoff"></i></div>
                     <div className="notification-content">
-                      <div className="notification-title">Deploy ready</div>
-                      <div className="notification-text">Sprint release passed QA validation.</div>
-                      <span className="notification-time">5m ago</span>
-                    </div>
-                  </div>
-                  <div className="notification-item unread">
-                    <span className="notification-dot"></span>
-                    <img src="/assets/img/avatars/avatar-2.webp" alt="" className="notification-avatar" />
-                    <div className="notification-content">
-                      <div className="notification-title">Mia sent feedback</div>
-                      <div className="notification-text">Please review updated dashboard spacing.</div>
-                      <span className="notification-time">21m ago</span>
+                      <div className="notification-title">Yayına hazır</div>
+                      <div className="notification-text">Sprint sürümü QA testinden geçti.</div>
+                      <span className="notification-time">5dk önce</span>
                     </div>
                   </div>
                 </div>
                 <div className="notification-footer">
-                  <a href="#">Open notification center <i className="bi bi-arrow-right"></i></a>
+                  <a href="#">Bildirim merkezini aç <i className="bi bi-arrow-right"></i></a>
                 </div>
               </div>
             </div>
 
             {/* Tema Butonu */}
-            <button className="header-action theme-toggle" title="Toggle Theme" onClick={toggleTheme}>
+            <button className="header-action theme-toggle" title="Temayı Değiştir" onClick={toggleTheme}>
               <i className={isDarkMode ? "ph-light ph-sun" : "ph-light ph-moon-stars"}></i>
             </button>
 
-            {/* Kullanıcı Profili (Dolduruldu) */}
+            {/* Kullanıcı Profili */}
             <div className="header-action-wrap dropdown user-dropdown">
               <button className="dropdown-toggle user-trigger" data-bs-toggle="dropdown">
-                <img src="/assets/img/profile-img.webp" alt="User" className="user-avatar" />
+                <img src={"/assets/img/profile-img.webp"} alt="User" className="user-avatar" />
                 <div className="user-brief">
-                  <span className="user-name">Buğra Öztürk</span>
-                  <span className="user-role">Developer</span>
+                  <span className="user-name">{user?.userName || 'Misafir'}</span>
+                  <span className="user-role">{user?.role || 'Üye'}</span>
                 </div>
               </button>
               
               <div className="dropdown-menu dropdown-menu-end user-menu">
                 <div className="user-menu-header">
-                  <img src="/assets/img/profile-img.webp" alt="User" className="user-menu-avatar" />
+                  <img src={"/assets/img/profile-img.webp"} alt="User" className="user-menu-avatar" />
                   <div className="user-menu-info">
-                    <div className="user-menu-name">Buğra Öztürk</div>
-                    <div className="user-menu-email">admin@bugraozturk.com.tr</div>
+                    <div className="user-menu-name">{user?.userName}</div>
+                    <div className="user-menu-email">{user?.role} Yetkisi</div>
                   </div>
                 </div>
                 <div className="user-menu-body">
                   <a className="user-menu-item" href="/profile">
                     <i className="bi bi-person"></i>
-                    <span>My Profile</span>
+                    <span>Profilim</span>
                   </a>
                   <a className="user-menu-item" href="/settings">
                     <i className="bi bi-sliders"></i>
-                    <span>Preferences</span>
+                    <span>Ayarlar</span>
                   </a>
                   <a className="user-menu-item" href="/activity">
                     <i className="bi bi-activity"></i>
-                    <span>Activity Log</span>
+                    <span>Aktivite Günlüğü</span>
                   </a>
                 </div>
                 <div className="user-menu-footer">
-                  <a className="user-menu-logout" href="/login">
+                  <button className="user-menu-logout" onClick={handleLogout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
                     <i className="bi bi-box-arrow-right"></i>
-                    <span>Sign Out</span>
-                  </a>
+                    <span>Çıkış Yap</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -151,26 +151,20 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
 
           {/* MOBİL AKSİYONLAR */}
           <div className="header-actions-mobile">
-            <button 
-              className="header-action search-toggle" 
-              onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-            >
+            <button className="header-action search-toggle" onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}>
               <i className="bi bi-search"></i>
             </button>
-            <button 
-              className="header-action mobile-menu-toggle" 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
+            <button className="header-action mobile-menu-toggle" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
               <i className="bi bi-three-dots"></i>
             </button>
           </div>
         </div>
       </header>
 
-      {/* MOBİL ARAMA KATMANI */}
+      {/* MOBİL ARAMA */}
       <div className={`mobile-search ${isMobileSearchOpen ? 'active' : ''}`}>
         <form className="search-form">
-          <input type="search" placeholder="Search..." />
+          <input type="search" placeholder="Ara..." />
           <button type="submit"><i className="bi bi-search"></i></button>
         </form>
       </div>
@@ -180,16 +174,17 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
         <div className="mobile-header-menu-content">
           <button className="mobile-menu-item theme-toggle" onClick={toggleTheme}>
             <i className={isDarkMode ? "ph-light ph-sun" : "ph-light ph-moon-stars"}></i>
-            <span className="mobile-menu-label">Theme</span>
+            <span className="mobile-menu-label">Tema</span>
           </button>
           <a href="/profile" className="mobile-menu-item">
             <i className="bi bi-person"></i>
-            <span className="mobile-menu-label">Profile</span>
+            <span className="mobile-menu-label">Profil</span>
           </a>
-          <a href="/login" className="mobile-menu-item mobile-menu-item-danger">
+          {/* Mobil çıkış buraya da bağlandı */}
+          <button className="mobile-menu-item mobile-menu-item-danger" onClick={handleLogout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left' }}>
             <i className="bi bi-box-arrow-right"></i>
-            <span className="mobile-menu-label">Sign Out</span>
-          </a>
+            <span className="mobile-menu-label">Çıkış Yap</span>
+          </button>
         </div>
       </div>
     </>
