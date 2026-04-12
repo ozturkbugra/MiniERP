@@ -1,32 +1,32 @@
 import { create } from 'zustand';
-import { jwtDecode } from 'jwt-decode'; // Token çözücü
+import { jwtDecode } from 'jwt-decode';
 import api from '../api/axiosInstance';
 
 interface User {
   id: number;
   userName: string;
   role: string;
-  permissions: string[];
+  permissions: string[]; // Token'dan gelenler (yedek)
 }
 
 interface AuthState {
   user: User | null;
+  serverPermissions: string[]; // API'den gelen taze yetkiler
   isAuthenticated: boolean;
-  setUser: (token: string | null) => void; // Artık direkt token alıyor
+  setUser: (token: string | null) => void;
+  fetchPermissions: () => Promise<void>; // Taze yetkileri çekme fonksiyonu
   hasPermission: (permission: string) => boolean;
   logout: () => void;
 }
 
-// Token'ı deşifre eden yardımcı fonksiyon
 const getUserFromToken = (token: string): User | null => {
   try {
     const decoded: any = jwtDecode(token);
-    // .NET tarafındaki claim isimlerine göre burayı eşleştiriyoruz
     return {
       id: decoded.id || 0,
       userName: decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] || "Kullanıcı",
       role: decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "User",
-      permissions: decoded["permissions"] || [] // Backend'den gelen policy listesi
+      permissions: decoded["permissions"] || [] 
     };
   } catch {
     return null;
@@ -34,36 +34,57 @@ const getUserFromToken = (token: string): User | null => {
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  // Sayfa açıldığında localStorage'da token varsa direkt kullanıcıyı yükle (Persistence)
   user: localStorage.getItem('token') ? getUserFromToken(localStorage.getItem('token')!) : null,
+  serverPermissions: [], // Başlangıçta boş
   isAuthenticated: !!localStorage.getItem('token'),
 
-  // Giriş yapınca token'ı al, hem sakla hem de parçalayıp user'ı set et
   setUser: (token) => {
     if (token) {
       const user = getUserFromToken(token);
       set({ user, isAuthenticated: true });
+      // Giriş yapınca hemen taze yetkileri çekelim
+      get().fetchPermissions();
     } else {
-      set({ user: null, isAuthenticated: false });
+      set({ user: null, isAuthenticated: false, serverPermissions: [] });
     }
   },
 
-  logout: async () => {
+  fetchPermissions: async () => {
     try {
-      await api.post('/Auths/logout');
+      console.log("🔍 API'den taze yetkiler isteniyor...");
+      const response = await api.get("/Auths/GetMyPermissions");
+      
+      if (response.data.isSuccess) {
+        //console.log("✅ API'den Gelen Yetkiler:", response.data.data);
+        set({ serverPermissions: response.data.data });
+      }
     } catch (error) {
-      console.error("Logout hatası:", error);
-    } finally {
-      localStorage.removeItem('token');
-      set({ user: null, isAuthenticated: false });
-      window.location.href = '/login';
+      console.error("❌ Yetki çekme hatası:", error);
     }
   },
 
   hasPermission: (permission) => {
-    const user = get().user;
-    if (!user) return false;
-    // Admin ise her kapı açılır, değilse listeye bakılır
-    return user.role === 'Admin' || (user.permissions && user.permissions.includes(permission));
+    const { user, serverPermissions } = get();
+    
+    // 1. Admin ise her zaman true
+    //if (user?.role === 'Admin') return true;
+
+    // 2. Önce API'den gelen taze listeye bak (ServerPermissions)
+    if (serverPermissions.length > 0) {
+        const hasIt = serverPermissions.includes(permission);
+        console.log(`🔐 [API Kontrol] ${permission} : ${hasIt}`);
+        return hasIt;
+    }
+
+    // 3. API henüz dönmediyse yedek olarak Token'a bak
+    const hasItToken = user?.permissions?.includes(permission) || false;
+    console.log(`🎫 [Token Kontrol] ${permission} : ${hasItToken}`);
+    return hasItToken;
+  },
+
+  logout: async () => {
+    localStorage.removeItem('token');
+    set({ user: null, isAuthenticated: false, serverPermissions: [] });
+    window.location.href = '/login';
   },
 }));
