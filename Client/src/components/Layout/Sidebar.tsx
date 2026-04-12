@@ -1,13 +1,13 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom'; // SPA davranışı için NavLink kullanıyoruz
-import { useAuthStore } from '../../store/useAuthStore'; // Az önce oluşturduğumuz beyin
+import { NavLink } from 'react-router-dom';
+import { useAuthStore } from '../../store/useAuthStore';
+import { APP_PERMISSIONS } from '../../constants/permissions'; // Az önce oluşturduğumuz dosya
 
 interface SidebarProps {
   onSidebarToggle: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
-  // Store'dan kullanıcı bilgilerini ve yetki kontrol fonksiyonunu çekiyoruz
   const { user, hasPermission, logout } = useAuthStore();
 
   return (
@@ -19,7 +19,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
 
         <nav className="sidebar-nav">
           <ul className="nav-menu">
-            {/* Dashboard genelde herkese açıktır ama istersen ona da yetki koyarız */}
             <li className="nav-item">
               <NavLink to="/" className="nav-link">
                 <span className="nav-icon"><i className="ph-light ph-squares-four"></i></span>
@@ -27,48 +26,79 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
               </NavLink>
             </li>
 
-            <li className="nav-heading"><span>Yönetim</span></li>
-
-            {/* KULLANICI YÖNETİMİ: Sadece yetkisi olan görsün */}
-            {hasPermission('AppPermissions.Users.View') && (
-              <li className="nav-item">
-                <NavLink to="/users" className="nav-link">
-                  <span className="nav-icon"><i className="ph-light ph-users-three"></i></span>
-                  <span className="nav-text">Kullanıcılar</span>
-                </NavLink>
-              </li>
+            {/* STOK VE ÜRÜN YÖNETİMİ */}
+            {(hasPermission(APP_PERMISSIONS.Products.View) || hasPermission(APP_PERMISSIONS.Stocks.View)) && (
+              <>
+                <li className="nav-heading"><span>Stok Yönetimi</span></li>
+                {hasPermission(APP_PERMISSIONS.Products.View) && (
+                  <li className="nav-item">
+                    <NavLink to="/products" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-package"></i></span>
+                      <span className="nav-text">Ürünler</span>
+                    </NavLink>
+                  </li>
+                )}
+                {hasPermission(APP_PERMISSIONS.Stocks.View) && (
+                  <li className="nav-item">
+                    <NavLink to="/stocks" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-stack"></i></span>
+                      <span className="nav-text">Stoklar</span>
+                    </NavLink>
+                  </li>
+                )}
+              </>
             )}
 
-            {/* MUHASEBE: Sadece yetkisi olan görsün */}
-            {hasPermission('AppPermissions.Accounting.View') && (
-              <li className="nav-item">
-                <NavLink to="/accounting" className="nav-link">
-                  <span className="nav-icon"><i className="ph-light ph-receipt"></i></span>
-                  <span className="nav-text">Muhasebe</span>
-                </NavLink>
-              </li>
+            {/* FİNANS VE MUHASEBE */}
+            {(hasPermission(APP_PERMISSIONS.Finance.View) || hasPermission(APP_PERMISSIONS.Invoices.View)) && (
+              <>
+                <li className="nav-heading"><span>Finans</span></li>
+                {hasPermission(APP_PERMISSIONS.Finance.View) && (
+                  <li className="nav-item">
+                    <NavLink to="/finance" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-bank"></i></span>
+                      <span className="nav-text">Finans İşlemleri</span>
+                    </NavLink>
+                  </li>
+                )}
+                {hasPermission(APP_PERMISSIONS.Invoices.View) && (
+                  <li className="nav-item">
+                    <NavLink to="/invoices" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-receipt"></i></span>
+                      <span className="nav-text">Faturalar</span>
+                    </NavLink>
+                  </li>
+                )}
+              </>
+            )}
+
+            {/* SİSTEM YÖNETİMİ */}
+            {hasPermission(APP_PERMISSIONS.Users.View) && (
+              <>
+                <li className="nav-heading"><span>Sistem</span></li>
+                <li className="nav-item">
+                  <NavLink to="/users" className="nav-link">
+                    <span className="nav-icon"><i className="ph-light ph-users-three"></i></span>
+                    <span className="nav-text">Kullanıcılar</span>
+                  </NavLink>
+                </li>
+              </>
             )}
           </ul>
         </nav>
 
-        {/* Sidebar Footer - Dinamik Kullanıcı Bilgileri */}
+        {/* Sidebar Footer */}
         <div className="sidebar-footer">
           <div className="sidebar-account">
             <NavLink to="/profile" className="sidebar-account-main">
-              {/* Kullanıcı fotoğrafı yoksa default avatar basıyoruz */}
-              <img src={user?.userName || "/assets/img/profile-img.webp"} alt="User" className="sidebar-account-avatar" />
+              <img src="/assets/img/profile-img.webp" alt="User" className="sidebar-account-avatar" />
               <div className="sidebar-account-meta">
-                {/* İsim artık store'dan geliyor */}
                 <div className="sidebar-account-name">{user?.userName || 'Misafir'}</div>
                 <div className="sidebar-account-role">{user?.role || 'Yetkisiz'}</div>
               </div>
             </NavLink>
             <div className="sidebar-account-actions">
-              <NavLink to="/settings" className="sidebar-account-action" title="Settings">
-                <i className="bi bi-gear"></i>
-              </NavLink>
-              {/* Çıkış fonksiyonunu bağladık */}
-              <button onClick={logout} className="sidebar-account-action sidebar-account-logout" title="Logout" style={{background: 'none', border: 'none'}}>
+              <button onClick={logout} className="sidebar-account-action sidebar-account-logout" title="Logout">
                 <i className="bi bi-box-arrow-right"></i>
               </button>
             </div>
