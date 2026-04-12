@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/useAuthStore';
+import toast from 'react-hot-toast'; // Bildirim kütüphanesi
 
 // Kendi axios instance'ımızı oluşturuyoruz
 const api = axios.create({
@@ -41,6 +42,31 @@ api.interceptors.response.use(
       // Kullanıcıyı login sayfasına fırlat
       window.location.href = '/login';
     }
+    return Promise.reject(error);
+  }
+);
+
+api.interceptors.response.use(
+  (response) => {
+    // 🟢 Başarılı işlemlerde (Ekleme/Silme/Güncelleme gibi) otomatik mesaj verelim
+    // Eğer istek bir POST, PUT veya DELETE ise ve backend 'message' dönmüşse ekrana bas
+    if (["post", "put", "delete"].includes(response.config.method || "") && response.data.message) {
+      toast.success(response.data.message); 
+    }
+    return response;
+  },
+  (error) => {
+    const message = error.response?.data?.message || "Bir hata oluştu aga!";
+    
+    if (error.response?.status === 401) {
+      toast.error("Oturum süresi doldu, tekrar giriş yap!");
+      const { logout } = useAuthStore.getState();
+      logout();
+    } else {
+      // 🔴 HERHANGİ BİR HATA OLUNCA BURASI ÇALIŞIR
+      toast.error(message); 
+    }
+    
     return Promise.reject(error);
   }
 );
