@@ -10,6 +10,7 @@ import { useAuthStore } from './store/useAuthStore';
 import { APP_PERMISSIONS } from './constants/permissions'; 
 import PermissionGuard from './components/Layout/guards/PermissionGuard';
 import RolePermissions from './pages/RolePermissions'; // Yeni sayfayı import et
+import UserDetails from './pages/UserDetails';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -56,7 +57,7 @@ function App() {
         />
 
       <Route path="/roles/:roleId/permissions" element={<RolePermissions />} />
-
+      <Route path="/users/:userId/details" element={<UserDetails />} />
         <Route 
           path="accounting" 
           element={
