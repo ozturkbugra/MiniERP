@@ -113,8 +113,7 @@ public sealed class RoleService : IRoleService
 
         if (currentRoleId is null) return false;
 
-        // Eğer rol varsa ve ID'si bizim elimizdekiyle aynıysa (kendi ismidir), unique kabul edilir.
-        // Farklıysa başka bir rol bu ismi kapmış demektir.
-        return role.Id.ToString() == currentRoleId;
+        // 🚀 ÇÖZÜM BURADA: Büyük/Küçük harf duyarlılığını (Case-Sensitivity) ortadan kaldırıyoruz
+        return string.Equals(role.Id.ToString(), currentRoleId, StringComparison.OrdinalIgnoreCase);
     }
 }

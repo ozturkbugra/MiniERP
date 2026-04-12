@@ -48,26 +48,27 @@ const Roles = () => {
   // 2. Kaydetme (Create & Update)
   const handleSave = async () => {
     try {
-      const payload = { 
-        name: roleName, 
-        description: roleDescription 
-      };
-
       if (selectedRoleId) {
         // GÜNCELLEME (PUT)
+        // 422 Hatasına karşı tüm property'leri standart camelCase yapıyoruz
         await api.put(`/Roles/${selectedRoleId}`, { 
-          Id: selectedRoleId, 
-          ...payload 
+          id: selectedRoleId,     // Büyük 'Id' yerine küçük 'id'
+          name: roleName,         // Büyük 'Name' yerine küçük 'name'
+          description: roleDescription 
         });
       } else {
         // YENİ KAYIT (POST)
-        await api.post("/Roles/CreateRole", payload);
+        await api.post("/Roles/CreateRole", {
+          name: roleName,
+          description: roleDescription
+        });
       }
 
       setShowModal(false);
       fetchRoles(); 
     } catch (error: any) {
-      console.error("İşlem sırasında hata oluştu:", error.response?.data);
+      // 💡 ÇOK ÖNEMLİ: Eğer hala hata alırsan Console'daki bu objenin içine bak!
+      console.error("422 Hatasının Detayı (Backend Ne İstiyor?):", error.response?.data);
     }
   };
 
