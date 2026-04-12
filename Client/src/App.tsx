@@ -4,35 +4,56 @@ import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
 import Accounting from './pages/Accounting';
 import Login from './pages/Login';
-import { useAuthStore } from './store/useAuthStore'; // 🧠 Beyni bağladık
+import Unauthorized from './pages/Unauthorized'; 
+import { useAuthStore } from './store/useAuthStore';
+import { APP_PERMISSIONS } from './constants/permissions'; 
+import PermissionGuard from './components/Layout/guards/PermissionGuard';
 
 function App() {
-  // Zustand store'u dinliyoruz. 
-  // Login.tsx içinde setUser çağrıldığı an bu "App" bileşeni kendini yeniler.
   const { isAuthenticated } = useAuthStore();
-
-  // Sayfa yenilendiğinde store boşalacağı için localStorage'ı da yedek kontrol olarak tutuyoruz.
   const hasToken = !!localStorage.getItem('token');
   const isLogged = isAuthenticated || hasToken;
 
   return (
     <Routes>
-      {/* 🔓 AÇIK KAPI: Login Sayfası */}
+      {/* 🔓 BAĞIMSIZ SAYFALAR (Layout Dışı) */}
       <Route 
         path="/login" 
         element={!isLogged ? <Login /> : <Navigate to="/" />}
       />
 
-      {/* 🔒 KAPALI KAPI: Ana Uygulama (MainLayout) */}
+      {/* 🛡️ TAM EKRAN HATA SAYFASI (Artık Sidebar Yok) */}
+      <Route path="/unauthorized" element={<Unauthorized />} />
+
+      {/* 🔒 KORUMALI ALAN (MainLayout İçindeki Sayfalar) */}
       <Route 
         path="/" 
         element={isLogged ? <MainLayout /> : <Navigate to="/login" />}
       >
+        {/* Dashboard herkese açık */}
         <Route index element={<Dashboard />} />
-        <Route path="users" element={<Users />} />
-        <Route path="accounting" element={<Accounting />} />
+
+        {/* Yetki Gerektiren Sayfalar */}
+        <Route 
+          path="users" 
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Users.View}>
+              <Users />
+            </PermissionGuard>
+          } 
+        />
+
+        <Route 
+          path="accounting" 
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Finance.View}>
+              <Accounting />
+            </PermissionGuard>
+          } 
+        />
       </Route>
 
+      {/* Tanımsız tüm yolları ana sayfaya yönlendir */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

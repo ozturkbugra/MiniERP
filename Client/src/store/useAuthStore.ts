@@ -1,3 +1,4 @@
+// store/useAuthStore.ts
 import { create } from 'zustand';
 import { jwtDecode } from 'jwt-decode';
 import api from '../api/axiosInstance';
@@ -6,15 +7,16 @@ interface User {
   id: number;
   userName: string;
   role: string;
-  permissions: string[]; // Token'dan gelenler (yedek)
+  permissions: string[];
 }
 
 interface AuthState {
   user: User | null;
-  serverPermissions: string[]; // API'den gelen taze yetkiler
+  serverPermissions: string[];
   isAuthenticated: boolean;
+  isInitialLoading: boolean; // API hızıyla yarışmamak için eklendi
   setUser: (token: string | null) => void;
-  fetchPermissions: () => Promise<void>; // Taze yetkileri çekme fonksiyonu
+  fetchPermissions: () => Promise<void>;
   hasPermission: (permission: string) => boolean;
   logout: () => void;
 }
@@ -35,56 +37,48 @@ const getUserFromToken = (token: string): User | null => {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: localStorage.getItem('token') ? getUserFromToken(localStorage.getItem('token')!) : null,
-  serverPermissions: [], // Başlangıçta boş
+  serverPermissions: [],
   isAuthenticated: !!localStorage.getItem('token'),
+  isInitialLoading: true, 
 
   setUser: (token) => {
     if (token) {
       const user = getUserFromToken(token);
       set({ user, isAuthenticated: true });
-      // Giriş yapınca hemen taze yetkileri çekelim
       get().fetchPermissions();
     } else {
-      set({ user: null, isAuthenticated: false, serverPermissions: [] });
+      set({ user: null, isAuthenticated: false, serverPermissions: [], isInitialLoading: false });
     }
   },
 
   fetchPermissions: async () => {
     try {
-      console.log("🔍 API'den taze yetkiler isteniyor...");
+      set({ isInitialLoading: true });
       const response = await api.get("/Auths/GetMyPermissions");
-      
       if (response.data.isSuccess) {
-        //console.log("✅ API'den Gelen Yetkiler:", response.data.data);
         set({ serverPermissions: response.data.data });
       }
-    } catch (error) {
-      console.error("❌ Yetki çekme hatası:", error);
+    } catch {
+      set({ serverPermissions: [] });
+    } finally {
+      set({ isInitialLoading: false });
     }
   },
 
   hasPermission: (permission) => {
     const { user, serverPermissions } = get();
-    
-    // 1. Admin ise her zaman true
-    //if (user?.role === 'Admin') return true;
+    // Admin yetki kontrolünü istersen burada aktif edebilirsin
+    // if (user?.role === 'Admin') return true;
 
-    // 2. Önce API'den gelen taze listeye bak (ServerPermissions)
     if (serverPermissions.length > 0) {
-        const hasIt = serverPermissions.includes(permission);
-        console.log(`🔐 [API Kontrol] ${permission} : ${hasIt}`);
-        return hasIt;
+        return serverPermissions.includes(permission);
     }
-
-    // 3. API henüz dönmediyse yedek olarak Token'a bak
-    const hasItToken = user?.permissions?.includes(permission) || false;
-    console.log(`🎫 [Token Kontrol] ${permission} : ${hasItToken}`);
-    return hasItToken;
+    return user?.permissions?.includes(permission) || false;
   },
 
   logout: async () => {
     localStorage.removeItem('token');
-    set({ user: null, isAuthenticated: false, serverPermissions: [] });
+    set({ user: null, isAuthenticated: false, serverPermissions: [], isInitialLoading: false });
     window.location.href = '/login';
   },
 }));
