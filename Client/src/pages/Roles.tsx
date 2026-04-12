@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // 🚀 Yönlendirme için eklendi
 import DataTable from '../components/Common/DataTable';
 import AppModal from '../components/Common/AppModal';
 import api from '../api/axiosInstance';
@@ -13,6 +14,7 @@ interface Role {
 
 const Roles = () => {
   const { hasPermission } = useAuthStore();
+  const navigate = useNavigate(); // 🚀 Hook'u başlattık
   
   // State Tanımları
   const [roles, setRoles] = useState<Role[]>([]);
@@ -45,33 +47,29 @@ const Roles = () => {
 
   // 2. Kaydetme (Create & Update)
   const handleSave = async () => {
-  try {
-    // Payload'ı backend'in beklediği isimlerle hazırlıyoruz
-    const payload = { 
-      name: roleName, 
-      description: roleDescription 
-    };
+    try {
+      const payload = { 
+        name: roleName, 
+        description: roleDescription 
+      };
 
-    if (selectedRoleId) {
-      // GÜNCELLEME (PUT)
-      // ÖNEMLİ: 'id' yerine 'Id' (Büyük I) kullanıyoruz 
-      // Çünkü backend request.Id (Büyük I) olarak kontrol ediyor
-      await api.put(`/Roles/${selectedRoleId}`, { 
-        Id: selectedRoleId, // Backend'deki property ismiyle birebir aynı olmalı
-        ...payload 
-      });
-    } else {
-      // YENİ KAYIT (POST)
-      await api.post("/Roles/CreateRole", payload);
+      if (selectedRoleId) {
+        // GÜNCELLEME (PUT)
+        await api.put(`/Roles/${selectedRoleId}`, { 
+          Id: selectedRoleId, 
+          ...payload 
+        });
+      } else {
+        // YENİ KAYIT (POST)
+        await api.post("/Roles/CreateRole", payload);
+      }
+
+      setShowModal(false);
+      fetchRoles(); 
+    } catch (error: any) {
+      console.error("İşlem sırasında hata oluştu:", error.response?.data);
     }
-
-    setShowModal(false);
-    fetchRoles(); // Listeyi tazele
-  } catch (error: any) {
-    // Hatayı sadece konsola basma, detayına bak
-    console.error("İşlem sırasında hata oluştu:", error.response?.data);
-  }
-};
+  };
 
   // 3. Silme (Delete)
   const handleDelete = async (id: string) => {
@@ -109,11 +107,23 @@ const Roles = () => {
       className: "text-end",
       accessor: (role: Role) => (
         <div className="d-flex justify-content-end gap-2">
+          {/* 🛡️ YENİ: ROL DETAYI VE YETKİ ATAMA BUTONU */}
+          <button 
+            className="btn btn-sm btn-outline-info border-0" 
+            onClick={() => navigate(`/roles/${role.id}/permissions`)}
+            title="Rol Detayı ve Yetkiler"
+          >
+            <i className="bi bi-shield-lock"></i> Rol Detayı
+          </button>
+
+          {/* Güncelleme Yetkisi Kontrolü */}
           {hasPermission(APP_PERMISSIONS.Roles.Update) && (
             <button className="btn btn-sm btn-outline-primary border-0" onClick={() => openEditModal(role)}>
               <i className="bi bi-pencil"></i>
             </button>
           )}
+
+          {/* Silme Yetkisi Kontrolü */}
           {hasPermission(APP_PERMISSIONS.Roles.Delete) && (
             <button className="btn btn-sm btn-outline-danger border-0" onClick={() => handleDelete(role.id)}>
               <i className="bi bi-trash"></i>

@@ -9,6 +9,7 @@ import Unauthorized from './pages/Unauthorized';
 import { useAuthStore } from './store/useAuthStore';
 import { APP_PERMISSIONS } from './constants/permissions'; 
 import PermissionGuard from './components/Layout/guards/PermissionGuard';
+import RolePermissions from './pages/RolePermissions'; // Yeni sayfayı import et
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -53,6 +54,8 @@ function App() {
             </PermissionGuard>
           } 
         />
+
+      <Route path="/roles/:roleId/permissions" element={<RolePermissions />} />
 
         <Route 
           path="accounting" 
