@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
+import Roles from './pages/Roles'
 import Accounting from './pages/Accounting';
 import Login from './pages/Login';
 import Unauthorized from './pages/Unauthorized'; 
@@ -39,6 +40,16 @@ function App() {
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Users.View}>
               <Users />
+            </PermissionGuard>
+          } 
+        />
+
+        {/* 🛡️ 2. ROL YÖNETİMİ: Burayı ekliyoruz */}
+        <Route 
+          path="roles" 
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Roles.View}>
+              <Roles />
             </PermissionGuard>
           } 
         />
