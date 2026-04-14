@@ -12,6 +12,7 @@ import PermissionGuard from './components/Layout/guards/PermissionGuard';
 import RolePermissions from './pages/RolePermissions'; // Yeni sayfayı import et
 import UserDetails from './pages/UserDetails';
 import Categories from './pages/Categories';
+import Brands from './pages/Brands';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -62,7 +63,7 @@ function App() {
 
 
         <Route path="/categories" element={<Categories />} />
-
+        <Route path="/brands" element={<Brands />} />
         <Route
           path="accounting"
           element={
