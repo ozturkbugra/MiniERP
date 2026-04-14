@@ -16,6 +16,8 @@ import Brands from './pages/Brands';
 import Units from './pages/Units';
 import Warehouses from "./pages/Warehouses";
 import Banks from './pages/Banks';
+import Cashes from './pages/Cashes';
+
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -70,7 +72,8 @@ function App() {
         <Route path="/units" element={<Units />} />
         <Route path="/warehouses" element={<Warehouses />} />
         <Route path="/banks" element={<Banks />} />
-
+        <Route path="/cashes" element={<Cashes />} />
+        
         <Route
           path="accounting"
           element={
