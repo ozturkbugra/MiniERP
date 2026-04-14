@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom'; // Bunu ekledik
+import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import Footer from './Footer';
 
-// Artık 'children' almasına gerek yok, Outlet o işi hallediyor
 const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     const saved = localStorage.getItem('mini-erp-sidebar');
     return saved !== null ? JSON.parse(saved) : true;
   });
+
+  // 🚀 YENİ: Arama state'ini burada tutuyoruz
+  const [searchTerm, setSearchTerm] = useState("");
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -38,8 +39,11 @@ const MainLayout: React.FC = () => {
 
   return (
     <>
-      <Header onSidebarToggle={toggleSidebar} />
-      <Sidebar onSidebarToggle={toggleSidebar} />
+      {/* 🚀 YENİ: onSearchChange prop'u eklendi */}
+      <Header onSidebarToggle={toggleSidebar} onSearchChange={setSearchTerm} />
+      
+      {/* 🚀 YENİ: searchTerm prop'u eklendi */}
+      <Sidebar onSidebarToggle={toggleSidebar} searchTerm={searchTerm} />
       
       <div 
         className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} 
@@ -48,7 +52,6 @@ const MainLayout: React.FC = () => {
 
       <main className="main">
         <div className="main-content">
-          {/* ESKİ: {children} -> YENİ: <Outlet /> */}
           <Outlet /> 
         </div>
         <footer className="footer">

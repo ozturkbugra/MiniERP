@@ -5,43 +5,60 @@ import { APP_PERMISSIONS } from '../../constants/permissions';
 
 interface SidebarProps {
   onSidebarToggle: () => void;
+  searchTerm?: string; // 🚀 YENİ
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
-  // Zustand store'dan ihtiyacımız olan her şeyi çekiyoruz
+// 🚀 YENİ: Türkçe karakterleri ingilizceye çevirip küçük harf yapan sihirbaz
+const normalizeString = (str: string) => {
+  return str.toLocaleLowerCase('tr-TR')
+    .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+    .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c');
+};
+
+const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle, searchTerm = "" }) => {
   const { user, hasPermission, logout, fetchPermissions } = useAuthStore();
 
-  // BİLEŞEN YÜKLENDİĞİNDE: API'den en güncel yetkileri çek
   useEffect(() => {
     if (user) {
       fetchPermissions();
     }
   }, [user, fetchPermissions]);
 
+  // 🚀 YENİ: Eşleşme kontrol fonksiyonu
+  const isMatch = (menuText: string) => {
+    if (!searchTerm) return true;
+    return normalizeString(menuText).includes(normalizeString(searchTerm));
+  };
+
   return (
     <aside className="sidebar">
       <div className="sidebar-shell">
-        {/* Mobil Kapatma Butonu */}
         <button className="sidebar-close" type="button" onClick={onSidebarToggle}>
           <i className="bi bi-x-lg"></i>
         </button>
 
         <nav className="sidebar-nav">
           <ul className="nav-menu">
-            {/* Dashboard: Herkese açık */}
-            <li className="nav-item">
-              <NavLink to="/" className="nav-link">
-                <span className="nav-icon"><i className="ph-light ph-squares-four"></i></span>
-                <span className="nav-text">Dashboard</span>
-              </NavLink>
-            </li>
+            
+            {/* Dashboard */}
+            {isMatch("Dashboard") && (
+              <li className="nav-item">
+                <NavLink to="/" className="nav-link">
+                  <span className="nav-icon"><i className="ph-light ph-squares-four"></i></span>
+                  <span className="nav-text">Dashboard</span>
+                </NavLink>
+              </li>
+            )}
 
-            {/* 🚀 TANIMLAMALAR (Kategori, Marka, Birim) */}
+            {/* TANIMLAMALAR */}
             {(hasPermission(APP_PERMISSIONS.Categories.View) || hasPermission(APP_PERMISSIONS.Brands?.View) || hasPermission(APP_PERMISSIONS.Units?.View)) && (
               <>
-                <li className="nav-heading"><span>Tanımlamalar</span></li>
+                {/* Altındaki elemanlardan en az biri aramayla eşleşiyorsa Başlığı göster */}
+                {(isMatch("Kategoriler") || isMatch("Markalar") || isMatch("Birimler")) && (
+                  <li className="nav-heading"><span>Tanımlamalar</span></li>
+                )}
 
-                {hasPermission(APP_PERMISSIONS.Categories.View) && (
+                {hasPermission(APP_PERMISSIONS.Categories.View) && isMatch("Kategoriler") && (
                   <li className="nav-item">
                     <NavLink to="/categories" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-tag"></i></span>
@@ -50,8 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
                   </li>
                 )}
 
-                {/* Markalar Yetkisi */}
-                {hasPermission(APP_PERMISSIONS.Brands?.View) && (
+                {hasPermission(APP_PERMISSIONS.Brands?.View) && isMatch("Markalar") && (
                   <li className="nav-item">
                     <NavLink to="/brands" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-bookmarks"></i></span>
@@ -60,8 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
                   </li>
                 )}
 
-                {/* Birimler Yetkisi */}
-                {hasPermission(APP_PERMISSIONS.Units.View) && (
+                {hasPermission(APP_PERMISSIONS.Units?.View) && isMatch("Birimler") && (
                   <li className="nav-item">
                     <NavLink to="/units" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-scales"></i></span>
@@ -75,9 +90,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
             {/* STOK VE ÜRÜN YÖNETİMİ */}
             {(hasPermission(APP_PERMISSIONS.Products.View) || hasPermission(APP_PERMISSIONS.Stocks.View)) && (
               <>
-                <li className="nav-heading"><span>Stok Yönetimi</span></li>
+                {(isMatch("Ürünler") || isMatch("Stoklar")) && (
+                  <li className="nav-heading"><span>Stok Yönetimi</span></li>
+                )}
 
-                {hasPermission(APP_PERMISSIONS.Products.View) && (
+                {hasPermission(APP_PERMISSIONS.Products.View) && isMatch("Ürünler") && (
                   <li className="nav-item">
                     <NavLink to="/products" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-package"></i></span>
@@ -86,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
                   </li>
                 )}
 
-                {hasPermission(APP_PERMISSIONS.Stocks.View) && (
+                {hasPermission(APP_PERMISSIONS.Stocks.View) && isMatch("Stoklar") && (
                   <li className="nav-item">
                     <NavLink to="/stocks" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-stack"></i></span>
@@ -100,9 +117,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
             {/* FİNANS VE MUHASEBE */}
             {(hasPermission(APP_PERMISSIONS.Finance.View) || hasPermission(APP_PERMISSIONS.Invoices.View)) && (
               <>
-                <li className="nav-heading"><span>Finans</span></li>
+                {(isMatch("Finans İşlemleri") || isMatch("Faturalar")) && (
+                  <li className="nav-heading"><span>Finans</span></li>
+                )}
 
-                {hasPermission(APP_PERMISSIONS.Finance.View) && (
+                {hasPermission(APP_PERMISSIONS.Finance.View) && isMatch("Finans İşlemleri") && (
                   <li className="nav-item">
                     <NavLink to="/finance" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-bank"></i></span>
@@ -111,7 +130,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
                   </li>
                 )}
 
-                {hasPermission(APP_PERMISSIONS.Invoices.View) && (
+                {hasPermission(APP_PERMISSIONS.Invoices.View) && isMatch("Faturalar") && (
                   <li className="nav-item">
                     <NavLink to="/invoices" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-receipt"></i></span>
@@ -125,10 +144,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
             {/* SİSTEM YÖNETİMİ */}
             {(hasPermission(APP_PERMISSIONS.Users.View) || hasPermission(APP_PERMISSIONS.Roles.View)) && (
               <>
-                <li className="nav-heading"><span>Sistem</span></li>
+                {(isMatch("Kullanıcılar") || isMatch("Roller")) && (
+                  <li className="nav-heading"><span>Sistem</span></li>
+                )}
 
-                {/* Kullanıcı Yönetimi */}
-                {hasPermission(APP_PERMISSIONS.Users.View) && (
+                {hasPermission(APP_PERMISSIONS.Users.View) && isMatch("Kullanıcılar") && (
                   <li className="nav-item">
                     <NavLink to="/users" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-users-three"></i></span>
@@ -137,8 +157,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
                   </li>
                 )}
 
-                {/* Rol ve Yetki Yönetimi */}
-                {hasPermission(APP_PERMISSIONS.Roles.View) && (
+                {hasPermission(APP_PERMISSIONS.Roles.View) && isMatch("Roller") && (
                   <li className="nav-item">
                     <NavLink to="/roles" className="nav-link">
                       <span className="nav-icon"><i className="ph-light ph-keyhole"></i></span>
