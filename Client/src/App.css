@@ -3,3 +3,23 @@
 /* Mobilde butonun üzerine binmesin diye */
 .sidebar-overlay { display: none; }
 .sidebar-overlay.active { display: block; z-index: 99; }
+/* 🚀 Modal İçindeki Choices.js (AppSelect) Taşıntı Düzeltmesi */
+.modal-content, 
+.modal-body {
+    /* Dropdown'un modal sınırlarından dışarı taşabilmesine izin ver */
+    overflow: visible !important; 
+}
+
+.modal-dialog .choices__list--dropdown, 
+.modal-dialog .choices__list[aria-expanded] {
+    /* Dropdown açıldığında her şeyin en üstünde görünmesini sağla */
+    z-index: 9999 !important; 
+}
+
+.modal {
+  z-index: 1055;
+}
+
+.modal-backdrop {
+  z-index: 1050;
+}

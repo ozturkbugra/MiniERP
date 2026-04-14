@@ -20,12 +20,14 @@ const AppModal: React.FC<AppModalProps> = ({
     <>
       <div className="modal fade show d-block" tabIndex={-1} style={{ backgroundColor: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)' }}>
         <div className={`modal-dialog modal-dialog-centered ${size ? `modal-${size}` : ''}`}>
-          <div className="modal-content border-0 shadow-lg">
+          {/* 🚀 DÜZELTME 1: modal-content taşmalara izin veriyor */}
+          <div className="modal-content border-0 shadow-lg" style={{ overflow: 'visible' }}>
             <div className="modal-header border-0 pb-0">
               <h5 className="modal-title fw-bold">{title}</h5>
               <button type="button" className="btn-close" onClick={onClose}></button>
             </div>
-            <div className="modal-body py-4">
+            {/* 🚀 DÜZELTME 2: modal-body taşmalara izin veriyor */}
+            <div className="modal-body py-4" style={{ overflow: 'visible' }}>
               {children}
             </div>
             <div className="modal-footer border-0 pt-0">
