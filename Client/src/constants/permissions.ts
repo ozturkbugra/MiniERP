@@ -86,6 +86,7 @@ export const APP_PERMISSIONS = {
         Create: "Permissions.Units.Create",
         Update: "Permissions.Units.Update",
         Delete: "Permissions.Units.Delete",
+        View: "Permissions.Units.View"
     },
     Warehouses: {
         View: "Permissions.Warehouses.View",

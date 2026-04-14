@@ -36,6 +36,42 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle }) => {
               </NavLink>
             </li>
 
+            {/* 🚀 TANIMLAMALAR (Kategori, Marka, Birim) */}
+            {(hasPermission(APP_PERMISSIONS.Categories.View) || hasPermission(APP_PERMISSIONS.Brands?.View) || hasPermission(APP_PERMISSIONS.Units?.View)) && (
+              <>
+                <li className="nav-heading"><span>Tanımlamalar</span></li>
+
+                {hasPermission(APP_PERMISSIONS.Categories.View) && (
+                  <li className="nav-item">
+                    <NavLink to="/categories" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-tag"></i></span>
+                      <span className="nav-text">Kategoriler</span>
+                    </NavLink>
+                  </li>
+                )}
+
+                {/* Markalar Yetkisi */}
+                {hasPermission(APP_PERMISSIONS.Brands?.View) && (
+                  <li className="nav-item">
+                    <NavLink to="/brands" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-bookmarks"></i></span>
+                      <span className="nav-text">Markalar</span>
+                    </NavLink>
+                  </li>
+                )}
+
+                {/* Birimler Yetkisi */}
+                {hasPermission(APP_PERMISSIONS.Units.View) && (
+                  <li className="nav-item">
+                    <NavLink to="/units" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-scales"></i></span>
+                      <span className="nav-text">Birimler</span>
+                    </NavLink>
+                  </li>
+                )}
+              </>
+            )}
+
             {/* STOK VE ÜRÜN YÖNETİMİ */}
             {(hasPermission(APP_PERMISSIONS.Products.View) || hasPermission(APP_PERMISSIONS.Stocks.View)) && (
               <>

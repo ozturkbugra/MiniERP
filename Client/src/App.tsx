@@ -5,12 +5,13 @@ import Users from './pages/Users';
 import Roles from './pages/Roles'
 import Accounting from './pages/Accounting';
 import Login from './pages/Login';
-import Unauthorized from './pages/Unauthorized'; 
+import Unauthorized from './pages/Unauthorized';
 import { useAuthStore } from './store/useAuthStore';
-import { APP_PERMISSIONS } from './constants/permissions'; 
+import { APP_PERMISSIONS } from './constants/permissions';
 import PermissionGuard from './components/Layout/guards/PermissionGuard';
 import RolePermissions from './pages/RolePermissions'; // Yeni sayfayı import et
 import UserDetails from './pages/UserDetails';
+import Categories from './pages/Categories';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -20,8 +21,8 @@ function App() {
   return (
     <Routes>
       {/* 🔓 BAĞIMSIZ SAYFALAR (Layout Dışı) */}
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={!isLogged ? <Login /> : <Navigate to="/" />}
       />
 
@@ -29,42 +30,46 @@ function App() {
       <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* 🔒 KORUMALI ALAN (MainLayout İçindeki Sayfalar) */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={isLogged ? <MainLayout /> : <Navigate to="/login" />}
       >
         {/* Dashboard herkese açık */}
         <Route index element={<Dashboard />} />
 
         {/* Yetki Gerektiren Sayfalar */}
-        <Route 
-          path="users" 
+        <Route
+          path="users"
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Users.View}>
               <Users />
             </PermissionGuard>
-          } 
+          }
         />
 
         {/* 🛡️ 2. ROL YÖNETİMİ: Burayı ekliyoruz */}
-        <Route 
-          path="roles" 
+        <Route
+          path="roles"
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Roles.View}>
               <Roles />
             </PermissionGuard>
-          } 
+          }
         />
 
-      <Route path="/roles/:roleId/permissions" element={<RolePermissions />} />
-      <Route path="/users/:userId/details" element={<UserDetails />} />
-        <Route 
-          path="accounting" 
+        <Route path="/roles/:roleId/permissions" element={<RolePermissions />} />
+        <Route path="/users/:userId/details" element={<UserDetails />} />
+
+
+        <Route path="/categories" element={<Categories />} />
+
+        <Route
+          path="accounting"
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Finance.View}>
               <Accounting />
             </PermissionGuard>
-          } 
+          }
         />
       </Route>
 
