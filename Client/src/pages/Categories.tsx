@@ -106,7 +106,7 @@ const Categories = () => {
     { 
       header: "KATEGORİ ADI", 
       accessor: (c: Category) => (
-        <span className="fw-medium text-light">{c.name}</span>
+        <span className="fw-medium">{c.name}</span>
       ) 
     },
     { 

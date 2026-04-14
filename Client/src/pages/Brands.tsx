@@ -93,7 +93,7 @@ const Brands = () => {
     { 
       header: "MARKA ADI", 
       accessor: (b: Brand) => (
-        <span className="fw-medium text-light">{b.name}</span>
+        <span className="fw-medium">{b.name}</span>
       ) 
     },
     {

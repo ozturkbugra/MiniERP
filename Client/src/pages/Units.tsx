@@ -106,7 +106,7 @@ const Units = () => {
     },
     { 
       header: "BİRİM ADI", 
-      accessor: (u: Unit) => <span className="fw-medium text-light">{u.name}</span> 
+      accessor: (u: Unit) => <span className="fw-medium">{u.name}</span> 
     },
     {
       header: "İŞLEMLER",
