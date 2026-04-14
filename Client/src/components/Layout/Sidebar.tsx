@@ -50,6 +50,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle, searchTerm = "" }) =
               </li>
             )}
 
+            {/* Depolar Yetkisi */}
+                {hasPermission(APP_PERMISSIONS.Warehouses?.View) && isMatch("Depolar") && (
+                  <li className="nav-item">
+                    <NavLink to="/warehouses" className="nav-link">
+                      <span className="nav-icon"><i className="ph-light ph-buildings"></i></span>
+                      <span className="nav-text">Depolar</span>
+                    </NavLink>
+                  </li>
+                )}
+
             {/* TANIMLAMALAR */}
             {(hasPermission(APP_PERMISSIONS.Categories.View) || hasPermission(APP_PERMISSIONS.Brands?.View) || hasPermission(APP_PERMISSIONS.Units?.View)) && (
               <>
