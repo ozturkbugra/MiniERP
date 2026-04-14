@@ -50,7 +50,7 @@ namespace MiniERP.WebAPI.Controllers
         [Authorize(Policy = AppPermissions.Banks.Update)]
         public async Task<IActionResult> Update(Guid id, UpdateBankCommand command)
         {
-            if (id != command.Id)
+            if (id.ToString().ToUpper() != command.Id.ToString().ToUpper())
             {
                 return BadRequest("URL'deki ID ile gönderilen verideki ID uyuşmuyor.");
             }
