@@ -17,6 +17,7 @@ import Units from './pages/Units';
 import Warehouses from "./pages/Warehouses";
 import Banks from './pages/Banks';
 import Cashes from './pages/Cashes';
+import Customers from './pages/Customers';
 
 
 function App() {
@@ -73,7 +74,7 @@ function App() {
         <Route path="/warehouses" element={<Warehouses />} />
         <Route path="/banks" element={<Banks />} />
         <Route path="/cashes" element={<Cashes />} />
-        
+        <Route path="/customers" element={<Customers />} />
         <Route
           path="accounting"
           element={

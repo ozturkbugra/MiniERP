@@ -80,6 +80,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onSidebarToggle, searchTerm = "" }) =
               </li>
             )}
 
+            {hasPermission(APP_PERMISSIONS.Customers.View) && isMatch("Cariler") && (
+  <li className="nav-item">
+    <NavLink to="/customers" className="nav-link">
+      <span className="nav-icon"><i className="ph-light ph-users"></i></span>
+      <span className="nav-text">Cari Kartlar</span>
+    </NavLink>
+  </li>
+)}
+
             {/* TANIMLAMALAR */}
             {(hasPermission(APP_PERMISSIONS.Categories.View) || hasPermission(APP_PERMISSIONS.Brands?.View) || hasPermission(APP_PERMISSIONS.Units?.View)) && (
               <>
