@@ -9,7 +9,7 @@ import Unauthorized from './pages/Unauthorized';
 import { useAuthStore } from './store/useAuthStore';
 import { APP_PERMISSIONS } from './constants/permissions';
 import PermissionGuard from './components/Layout/guards/PermissionGuard';
-import RolePermissions from './pages/RolePermissions'; // Yeni sayfayı import et
+import RolePermissions from './pages/RolePermissions';
 import UserDetails from './pages/UserDetails';
 import Categories from './pages/Categories';
 import Brands from './pages/Brands';
@@ -20,6 +20,7 @@ import Cashes from './pages/Cashes';
 import Customers from './pages/Customers';
 import Products from './pages/Products';
 import StockTransactions from './pages/StockTransactions';
+import Finance from './pages/Finance'; // 🚀 YENİ
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -28,16 +29,14 @@ function App() {
 
   return (
     <Routes>
-      {/* 🔓 BAĞIMSIZ SAYFALAR (Layout Dışı) */}
+      {/* 🔓 BAĞIMSIZ SAYFALAR */}
       <Route
         path="/login"
         element={!isLogged ? <Login /> : <Navigate to="/" />}
       />
-
-      {/* 🛡️ TAM EKRAN HATA SAYFASI (Artık Sidebar Yok) */}
       <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* 🔒 KORUMALI ALAN (MainLayout İçindeki Sayfalar) */}
+      {/* 🔒 KORUMALI ALAN (MainLayout) */}
       <Route
         path="/"
         element={isLogged ? <MainLayout /> : <Navigate to="/login" />}
@@ -45,7 +44,7 @@ function App() {
         {/* Dashboard herkese açık */}
         <Route index element={<Dashboard />} />
 
-        {/* Yetki Gerektiren Sayfalar */}
+        {/* ⚙️ SİSTEM YÖNETİMİ */}
         <Route
           path="users"
           element={
@@ -54,8 +53,6 @@ function App() {
             </PermissionGuard>
           }
         />
-
-        {/* 🛡️ 2. ROL YÖNETİMİ: Burayı ekliyoruz */}
         <Route
           path="roles"
           element={
@@ -64,21 +61,40 @@ function App() {
             </PermissionGuard>
           }
         />
+        <Route path="roles/:roleId/permissions" element={<RolePermissions />} />
+        <Route path="users/:userId/details" element={<UserDetails />} />
 
-        <Route path="/roles/:roleId/permissions" element={<RolePermissions />} />
-        <Route path="/users/:userId/details" element={<UserDetails />} />
+        {/* 🛠️ TANIMLAMALAR (Tümü Guard ile Korunuyor) */}
+        <Route path="categories" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Categories.View}><Categories /></PermissionGuard>} />
+        <Route path="brands" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Brands.View}><Brands /></PermissionGuard>} />
+        <Route path="units" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Units.View}><Units /></PermissionGuard>} />
+        <Route path="warehouses" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Warehouses.View}><Warehouses /></PermissionGuard>} />
+        <Route path="banks" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Banks.View}><Banks /></PermissionGuard>} />
+        <Route path="cashes" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Cashes.View}><Cashes /></PermissionGuard>} />
 
+        {/* 🤝 TİCARET VE STOK */}
+        <Route path="customers" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Customers.View}><Customers /></PermissionGuard>} />
+        <Route path="products" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Products.View}><Products /></PermissionGuard>} />
+        <Route 
+            path="stocktransactions" 
+            element={
+                <PermissionGuard requiredPermission={APP_PERMISSIONS.StockTransactions.View}>
+                    <StockTransactions />
+                </PermissionGuard>
+            } 
+        />
 
-        <Route path="/categories" element={<Categories />} />
-        <Route path="/brands" element={<Brands />} />
-        <Route path="/units" element={<Units />} />
-        <Route path="/warehouses" element={<Warehouses />} />
-        <Route path="/banks" element={<Banks />} />
-        <Route path="/cashes" element={<Cashes />} />
-        <Route path="/customers" element={<Customers />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/stocktransactions" element={<StockTransactions />} />
+        {/* 💸 FİNANS YÖNETİMİ */}
+        <Route
+          path="finance"
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Finance.View}>
+              <Finance />
+            </PermissionGuard>
+          }
+        />
 
+        {/* Muhasebe Raporları vb. için durabilir */}
         <Route
           path="accounting"
           element={
