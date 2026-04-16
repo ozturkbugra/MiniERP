@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useAuthStore } from '../../store/useAuthStore'; 
+import { useAuthStore } from '../../store/useAuthStore';
+import { useSettingsStore } from '../../store/useSettingsStore';
+import api from '../../api/axiosInstance';
+import AppSelect from '../Common/AppSelect'; 
 
 interface HeaderProps {
   onSidebarToggle: () => void;
-  onSearchChange: (value: string) => void; // 🚀 YENİ
+  onSearchChange: (value: string) => void;
 }
 
 const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('mini-erp-theme') === 'dark');
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [warehouses, setWarehouses] = useState<{ id: string, name: string }[]>([]);
+
+  const { logout, user } = useAuthStore();
+  const { defaultWarehouseId, setDefaultWarehouse } = useSettingsStore();
 
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
-  const { logout, user } = useAuthStore();
 
   const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -22,6 +28,17 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
   };
 
   useEffect(() => {
+    api.get("/Warehouses").then(res => {
+      if (res.data.isSuccess) {
+        setWarehouses(res.data.data);
+        if (!defaultWarehouseId && res.data.data.length > 0) {
+          setDefaultWarehouse(res.data.data[0].id);
+        }
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     const html = document.documentElement;
     const theme = isDarkMode ? 'dark' : 'light';
     html.setAttribute('data-theme', theme);
@@ -29,10 +46,12 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
     localStorage.setItem('mini-erp-theme', theme);
   }, [isDarkMode]);
 
-  // 🚀 YENİ: Arama inputunu dinleyen fonksiyon
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     onSearchChange(e.target.value);
   };
+
+  // AppSelect için veriyi formatla
+  const warehouseOptions = warehouses.map(w => ({ label: w.name, value: w.id }));
 
   return (
     <>
@@ -52,21 +71,34 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
 
         {/* Masaüstü Arama */}
         <div className="header-search-wrap">
-          {/* 🚀 onSubmit ile sayfa yenilemeyi engelledik */}
           <form className="search-form" onSubmit={(e) => e.preventDefault()}>
             <i className="bi bi-search search-icon"></i>
             <input 
               type="search" 
               placeholder="Menüde ara..." 
-              onChange={handleSearchInput} // 🚀
+              onChange={handleSearchInput}
             />
             <kbd className="search-shortcut">/</kbd>
           </form>
         </div>
 
         <div className="header-right">
-          {/* ... BİLDİRİMLER VE DİĞER KISIMLAR (KODUN AYNI KALDI) ... */}
           <div className="header-actions-desktop">
+            
+            {/* 🚀 MASAÜSTÜ ARAMALI DEPO SEÇİCİ */}
+            <div className="header-action-wrap d-none d-xl-flex align-items-center me-3" style={{ zIndex: 1050 }}>
+               {/* AppSelect'in mb-3 class'ını Header içinde sıfırlamak için wrapper kullandık */}
+               <div className="warehouse-select-container" style={{ width: '220px', marginTop: '16px' }}>
+                  <AppSelect 
+                    options={warehouseOptions}
+                    value={defaultWarehouseId}
+                    onChange={(val) => setDefaultWarehouse(val)}
+                    isSearchable={true}
+                    placeholder="Depo Seçiniz..."
+                  />
+               </div>
+            </div>
+
             <div className="header-action-wrap dropdown notification-dropdown">
               <button className="header-action dropdown-toggle" data-bs-toggle="dropdown">
                 <i className="bi bi-bell"></i>
@@ -77,13 +109,8 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
                   <div><h6>Bildirimler</h6><span>4 okunmamış</span></div>
                   <a href="#" data-notification-action="mark-all-read">Tümünü okundu işaretle</a>
                 </div>
-                <div className="notification-summary">
-                  <a href="#" className="notification-summary-item"><strong>7</strong><span>Bugün</span></a>
-                  <a href="#" className="notification-summary-item"><strong>23</strong><span>Bu Hafta</span></a>
-                  <a href="#" className="notification-summary-item"><strong>3</strong><span>Onaylar</span></a>
-                </div>
                 <div className="notification-list">
-                  <div className="notification-item unread">
+                   <div className="notification-item unread">
                     <span className="notification-dot"></span>
                     <div className="notification-icon info"><i className="bi bi-rocket-takeoff"></i></div>
                     <div className="notification-content">
@@ -121,7 +148,6 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
                 <div className="user-menu-body">
                   <a className="user-menu-item" href="/profile"><i className="bi bi-person"></i><span>Profilim</span></a>
                   <a className="user-menu-item" href="/settings"><i className="bi bi-sliders"></i><span>Ayarlar</span></a>
-                  <a className="user-menu-item" href="/activity"><i className="bi bi-activity"></i><span>Aktivite Günlüğü</span></a>
                 </div>
                 <div className="user-menu-footer">
                   <button className="user-menu-logout" onClick={handleLogout} style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}>
@@ -149,7 +175,7 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
           <input 
             type="search" 
             placeholder="Menüde ara..." 
-            onChange={handleSearchInput} // 🚀 Mobil arama için
+            onChange={handleSearchInput}
           />
           <button type="submit"><i className="bi bi-search"></i></button>
         </form>
@@ -158,6 +184,21 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
       {/* MOBİL HEADER MENÜ */}
       <div className={`mobile-header-menu ${isMobileMenuOpen ? 'active' : ''}`}>
         <div className="mobile-header-menu-content">
+          
+          {/* MOBİL İÇİN NATIVE SELECT (Parmakla kullanım için daha iyi) */}
+          <div className="mobile-menu-item">
+             <i className="ph-light ph-buildings"></i>
+             <select 
+                className="form-select form-select-sm border-0 bg-transparent text-light p-0 ms-2"
+                value={defaultWarehouseId || ""}
+                onChange={(e) => setDefaultWarehouse(e.target.value)}
+              >
+                {warehouses.map(w => (
+                  <option key={w.id} value={w.id} className="bg-dark text-light">{w.name}</option>
+                ))}
+              </select>
+          </div>
+
           <button className="mobile-menu-item theme-toggle" onClick={toggleTheme}>
             <i className={isDarkMode ? "ph-light ph-sun" : "ph-light ph-moon-stars"}></i>
             <span className="mobile-menu-label">Tema</span>
@@ -172,6 +213,8 @@ const Header: React.FC<HeaderProps> = ({ onSidebarToggle, onSearchChange }) => {
           </button>
         </div>
       </div>
+
+    
     </>
   );
 };
