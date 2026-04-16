@@ -24,7 +24,7 @@ export const MENU_ITEMS = [
     permissions: [APP_PERMISSIONS.Products.View, APP_PERMISSIONS.Stocks.View, APP_PERMISSIONS.Warehouses.View],
     children: [
       { title: "Ürünler", path: "/products", icon: "ph-package", permission: APP_PERMISSIONS.Products.View },
-      { title: "Stoklar", path: "/stocks", icon: "ph-stack", permission: APP_PERMISSIONS.Stocks.View },
+      { title: "Stoklar", path: "/stocktransactions", icon: "ph-stack", permission: APP_PERMISSIONS.Stocks.View },
       { title: "Depolar", path: "/warehouses", icon: "ph-buildings", permission: APP_PERMISSIONS.Warehouses.View },
     ]
   },

@@ -19,7 +19,7 @@ import Banks from './pages/Banks';
 import Cashes from './pages/Cashes';
 import Customers from './pages/Customers';
 import Products from './pages/Products';
-
+import StockTransactions from './pages/StockTransactions';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -77,7 +77,7 @@ function App() {
         <Route path="/cashes" element={<Cashes />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/products" element={<Products />} />
-
+        <Route path="/stocktransactions" element={<StockTransactions />} />
 
         <Route
           path="accounting"
