@@ -41,8 +41,8 @@ const AppSelect: React.FC<AppSelectProps> = ({
 
   // Arama filtresi
   const filteredOptions = options.filter(opt => 
-    opt.label.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  opt?.label?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+);
 
   // Seçili elemanın adını bul
   const selectedLabel = options.find(opt => opt.value === value)?.label || placeholder;
