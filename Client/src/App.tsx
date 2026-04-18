@@ -21,6 +21,7 @@ import Customers from './pages/Customers';
 import Products from './pages/Products';
 import StockTransactions from './pages/StockTransactions';
 import Finance from './pages/Finance'; // 🚀 YENİ
+import Orders from './pages/Orders';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -75,6 +76,8 @@ function App() {
         {/* 🤝 TİCARET VE STOK */}
         <Route path="customers" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Customers.View}><Customers /></PermissionGuard>} />
         <Route path="products" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Products.View}><Products /></PermissionGuard>} />
+        <Route path="orders" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Orders.View}><Orders /></PermissionGuard>} />
+
         <Route 
             path="stocktransactions" 
             element={
