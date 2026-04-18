@@ -54,7 +54,6 @@ const Finance = () => {
       const response = await api.post(endpoint, formData);
       if (response.data.isSuccess) {
         setModalType(null);
-        alert("İşlem başarıyla kaydedildi.");
       }
     } catch (error) { alert("İşlem sırasında bir hata oluştu."); }
   };
