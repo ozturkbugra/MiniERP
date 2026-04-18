@@ -97,7 +97,12 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveInvoice
                     {
                         // Mevcut fiziksel stok hesabı (Girişler - Çıkışlar)
                         var stockMoves = await _stockRepository.ToListAsync(_stockRepository.Where(x => x.ProductId == detail.ProductId && x.WarehouseId == detail.WarehouseId && !x.IsDeleted), cancellationToken);
-                        var physicalBalance = stockMoves.Sum(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity);
+
+                        // 🚀 DÜZELTME BURADA: Eğer Type In(1) VEYA 3 (Açılış) ise Miktarı Topla, değilse Çıkar!
+                        var physicalBalance = stockMoves.Sum(x =>
+                            ((int)x.Type == (int)StockTransactionType.In || (int)x.Type == 3)
+                                ? x.Quantity
+                                : -x.Quantity);
 
                         // Bekleyen (Onaylı) diğer siparişlerin rezervasyonu (Bu faturanın ait olduğu sipariş hariç tutuluyor)
                         var reservations = await _orderDetailRepository.ToListAsync(_orderDetailRepository.Where(x =>

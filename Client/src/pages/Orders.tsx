@@ -196,7 +196,7 @@ const Orders = () => {
           </div>
 
           <div className="col-12 mt-2">
-            <div className="bg-dark-subtle p-3 rounded border border-secondary-subtle">
+            <div className="p-3 rounded border border-secondary-subtle">
               <h6 className="small fw-bold mb-3">Sipariş Kalemi Ekle</h6>
               <div className="row g-2 align-items-end">
                 <div className="col-md-4">
@@ -230,7 +230,7 @@ const Orders = () => {
           </div>
 
           <div className="col-12">
-            <table className="table table-sm table-dark mt-2">
+            <table className="table table-sm mt-2">
               <thead><tr className="small text-muted"><th>Ürün Adı</th><th>Depo</th><th className="text-end">Miktar</th><th className="text-end">Fiyat</th><th className="text-end">Toplam</th><th></th></tr></thead>
               <tbody>
                 {formData.orderLines.map((l, i) => (
@@ -273,7 +273,7 @@ const Orders = () => {
             <div className="col-12"><hr className="opacity-10" /></div>
             <div className="col-12">
               <h6 className="fw-bold mb-3 text-primary">Sipariş Kalemleri</h6>
-              <table className="table table-sm table-dark border-secondary-subtle">
+              <table className="table table-sm border-secondary-subtle">
                 <thead>
                   <tr className="small text-muted">
                     <th>Ürün</th>
