@@ -4,6 +4,7 @@
     Guid Id,
     string OrderNumber,
     DateTime OrderDate,
+    Guid CustomerId,
     string CustomerName,
     string WarehouseName,
     string Status,

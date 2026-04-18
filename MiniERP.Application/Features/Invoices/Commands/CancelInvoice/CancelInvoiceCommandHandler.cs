@@ -3,7 +3,11 @@ using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
 using MiniERP.Domain.Enums;
+using System;
 using System.Data;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Invoices.Commands.CancelInvoice
 {
@@ -54,37 +58,47 @@ namespace MiniERP.Application.Features.Invoices.Commands.CancelInvoice
 
                 var cancelTid = Guid.NewGuid();
 
-                // 2. STOK TERS KAYITLARI (Nötrleme)
+                // 🚀 1. İPTAL İÇİN TERS YÖNLERİ BELİRLE (Onayın Tam Zıttı)
+                var (reverseStockType, isOriginalDebit) = invoice.Type switch
+                {
+                    InvoiceType.Sales => (StockTransactionType.In, true),          // Orijinali Out, Cari Borçluydu -> Şimdi In, Alacaklı
+                    InvoiceType.Purchase => (StockTransactionType.Out, false),     // Orijinali In, Cari Alacaklıydı -> Şimdi Out, Borçlu
+                    InvoiceType.SalesReturn => (StockTransactionType.Out, false),  // Orijinali In, Cari Alacaklıydı -> Şimdi Out, Borçlu
+                    InvoiceType.PurchaseReturn => (StockTransactionType.In, true), // Orijinali Out, Cari Borçluydu -> Şimdi In, Alacaklı
+                    _ => throw new Exception("Tanımsız fatura tipi!")
+                };
+
+                // 🚀 2. STOK TERS KAYITLARI (Nötrleme)
                 foreach (var detail in invoice.Details)
                 {
                     var reverseStock = new StockTransaction
                     {
+                        TransactionId = cancelTid,
                         DocumentNo = "İPT-" + invoice.InvoiceNumber,
                         TransactionDate = DateTime.Now,
-                        Quantity = -detail.Quantity,
-                        UnitPrice = detail.UnitPrice,
-                        Description = $"{invoice.InvoiceNumber} Fatura İptal Kaydı",
-                        Type = invoice.Type == InvoiceType.Purchase ? StockTransactionType.In : StockTransactionType.Out,
-                        TransactionId = cancelTid,
                         ProductId = detail.ProductId,
                         WarehouseId = detail.WarehouseId,
+                        Quantity = Math.Abs(detail.Quantity), // 🚀 Eksi vermek yerine yönü (Type) değiştiriyoruz
+                        UnitPrice = detail.UnitPrice,
+                        Type = reverseStockType, // 🚀 Dinamik ters yön
+                        Description = $"{invoice.InvoiceNumber} Fatura İptal Kaydı",
                         CustomerId = invoice.CustomerId,
                         PaymentType = invoice.PaymentType ?? PaymentType.Credit
                     };
                     await _stockRepository.AddAsync(reverseStock, cancellationToken);
                 }
 
-                // --- 3. CARİ TERS KAYITLAR ---
+                // 🚀 3. CARİ TERS KAYITLAR
 
-                // A) Fatura Kaydının Tersi (Müşteri borç/alacak bakiyesini nötrler)
+                // A) Fatura Kaydının Tersi (Borç ise Alacak, Alacak ise Borç)
                 var reverseInvoiceEntry = new CustomerTransaction
                 {
                     TransactionId = cancelTid,
                     Date = DateTime.Now,
                     Description = $"{invoice.InvoiceNumber} nolu Fatura İptali (Fatura Ters Kaydı)",
                     CustomerId = invoice.CustomerId,
-                    Debit = invoice.Type == InvoiceType.Purchase ? invoice.GrandTotal : 0,
-                    Credit = invoice.Type == InvoiceType.Sales ? invoice.GrandTotal : 0
+                    Debit = !isOriginalDebit ? invoice.GrandTotal : 0,
+                    Credit = isOriginalDebit ? invoice.GrandTotal : 0
                 };
                 await _customerRepository.AddAsync(reverseInvoiceEntry, cancellationToken);
 
@@ -97,17 +111,16 @@ namespace MiniERP.Application.Features.Invoices.Commands.CancelInvoice
                         Date = DateTime.Now,
                         Description = $"{invoice.InvoiceNumber} nolu Fatura İptali (Ödeme/Tahsilat İadesi)",
                         CustomerId = invoice.CustomerId,
-                        Debit = invoice.Type == InvoiceType.Sales ? invoice.GrandTotal : 0,
-                        Credit = invoice.Type == InvoiceType.Purchase ? invoice.GrandTotal : 0
+                        Debit = isOriginalDebit ? invoice.GrandTotal : 0,
+                        Credit = !isOriginalDebit ? invoice.GrandTotal : 0
                     };
                     await _customerRepository.AddAsync(reversePaymentEntry, cancellationToken);
                 }
 
-                // 4. KASA / BANKA TERS KAYIT
+                // 🚀 4. KASA / BANKA TERS KAYIT
                 if (invoice.PaymentType == PaymentType.Cash)
                 {
-                    var cashQuery = _cashRepository.Where(x => x.TransactionId == originalTid);
-                    var cashLogs = await _cashRepository.ToListAsync(cashQuery, cancellationToken);
+                    var cashLogs = await _cashRepository.ToListAsync(_cashRepository.Where(x => x.TransactionId == originalTid), cancellationToken);
                     var originalCashLog = cashLogs.FirstOrDefault();
 
                     if (originalCashLog != null)
@@ -118,16 +131,15 @@ namespace MiniERP.Application.Features.Invoices.Commands.CancelInvoice
                             Date = DateTime.Now,
                             Description = $"{invoice.InvoiceNumber} Fatura İptal İadesi",
                             CashId = originalCashLog.CashId,
-                            Debit = invoice.Type == InvoiceType.Purchase ? invoice.GrandTotal : 0,
-                            Credit = invoice.Type == InvoiceType.Sales ? invoice.GrandTotal : 0
+                            Debit = !isOriginalDebit ? invoice.GrandTotal : 0, // Aslında para girmişse, şimdi çıkacak
+                            Credit = isOriginalDebit ? invoice.GrandTotal : 0
                         };
                         await _cashRepository.AddAsync(reverseCash, cancellationToken);
                     }
                 }
                 else if (invoice.PaymentType == PaymentType.Bank)
                 {
-                    var bankQuery = _bankRepository.Where(x => x.TransactionId == originalTid);
-                    var bankLogs = await _bankRepository.ToListAsync(bankQuery, cancellationToken);
+                    var bankLogs = await _bankRepository.ToListAsync(_bankRepository.Where(x => x.TransactionId == originalTid), cancellationToken);
                     var originalBankLog = bankLogs.FirstOrDefault();
 
                     if (originalBankLog != null)
@@ -138,8 +150,8 @@ namespace MiniERP.Application.Features.Invoices.Commands.CancelInvoice
                             Date = DateTime.Now,
                             Description = $"{invoice.InvoiceNumber} Fatura İptal İadesi",
                             BankId = originalBankLog.BankId,
-                            Debit = invoice.Type == InvoiceType.Purchase ? invoice.GrandTotal : 0,
-                            Credit = invoice.Type == InvoiceType.Sales ? invoice.GrandTotal : 0
+                            Debit = !isOriginalDebit ? invoice.GrandTotal : 0,
+                            Credit = isOriginalDebit ? invoice.GrandTotal : 0
                         };
                         await _bankRepository.AddAsync(reverseBank, cancellationToken);
                     }
@@ -156,7 +168,6 @@ namespace MiniERP.Application.Features.Invoices.Commands.CancelInvoice
                     }
                 }
 
-                
                 await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
                 await _unitOfWork.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);

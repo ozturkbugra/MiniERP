@@ -3,7 +3,11 @@ using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
 using MiniERP.Domain.Enums;
+using System;
 using System.Data;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Invoices.Commands.ApproveReturnInvoice
 {
@@ -54,23 +58,29 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveReturnInvoice
                 var isSalesReturn = invoice.Type == InvoiceType.SalesReturn;
                 var sharedTransactionId = Guid.NewGuid();
 
-                // 1. STOK HAREKETLERİ (Tam Tersine İşler)
+                // 1. STOK HAREKETLERİ
                 foreach (var detail in invoice.Details)
                 {
-                    // Eğer "Alış İadesi" yapıyorsak (Tedarikçiye mal geri yolluyoruz), elimizde o maldan hala var mı kontrol etmeliyiz!
+                    // 🚀 Miktarı daima pozitif tutuyoruz, yönü aşağıda 'Type' belirleyecek
+                    decimal absQuantity = Math.Abs(detail.Quantity);
+
+                    // Alış İadesi yapıyorsak (Tedarikçiye mal geri yolluyorsak) depodan mal ÇIKAR. Yeterli stok var mı bakmalıyız.
                     if (!isSalesReturn)
                     {
                         var stockMoves = await _stockRepository.ToListAsync(_stockRepository.Where(x => x.ProductId == detail.ProductId && x.WarehouseId == detail.WarehouseId && !x.IsDeleted), cancellationToken);
                         var physicalBalance = stockMoves.Sum(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity);
 
                         var reservations = await _orderDetailRepository.ToListAsync(_orderDetailRepository.Where(x =>
-                            x.ProductId == detail.ProductId && x.WarehouseId == detail.WarehouseId && x.Order!.Status == OrderStatus.Approved && !x.IsDeleted), cancellationToken);
+                            x.ProductId == detail.ProductId &&
+                            x.WarehouseId == detail.WarehouseId &&
+                            x.Order!.Status == OrderStatus.Approved &&
+                            !x.IsDeleted), cancellationToken);
 
                         var reservedAmount = reservations.Sum(x => x.Quantity);
                         var availableStock = physicalBalance - reservedAmount;
 
-                        if (availableStock < detail.Quantity)
-                            throw new Exception($"{detail.ProductId} için iade edilecek yeterli stok yok. Müsait: {availableStock}");
+                        if (availableStock < absQuantity)
+                            return Result<string>.Failure($"{detail.ProductId} için iade edilecek yeterli stok yok. Müsait: {availableStock}, İstenen: {absQuantity}");
                     }
 
                     // Satış İadesiyse Stok GİRER (In), Alış İadesiyse Stok ÇIKAR (Out)
@@ -81,7 +91,7 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveReturnInvoice
                         TransactionDate = invoice.InvoiceDate,
                         ProductId = detail.ProductId,
                         WarehouseId = detail.WarehouseId,
-                        Quantity = detail.Quantity,
+                        Quantity = absQuantity, // 🚀 Koruma kalkanı eklendi
                         UnitPrice = detail.UnitPrice,
                         Type = isSalesReturn ? StockTransactionType.In : StockTransactionType.Out,
                         Description = isSalesReturn ? "Satış İadesi - Stok Girişi" : "Alım İadesi - Stok Çıkışı",
@@ -90,7 +100,7 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveReturnInvoice
                     }, cancellationToken);
                 }
 
-                // 2. CARİ HAREKET (Normalin Tam Tersi)
+                // 2. CARİ HAREKET (İade işlemi olduğu için normalin tam tersi)
                 var mainTransaction = new CustomerTransaction
                 {
                     TransactionId = sharedTransactionId,
@@ -106,6 +116,7 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveReturnInvoice
                 // 3. PEŞİN ÖDEME İADESİ (Kasa/Banka Ters Kayıt)
                 if (request.PaymentType != PaymentType.Credit)
                 {
+                    // Cariyi nötrleyen ters kayıt
                     var offsetTransaction = new CustomerTransaction
                     {
                         TransactionId = sharedTransactionId,
@@ -117,26 +128,28 @@ namespace MiniERP.Application.Features.Invoices.Commands.ApproveReturnInvoice
                     };
                     await _customerRepository.AddAsync(offsetTransaction, cancellationToken);
 
-                    // Parayı geri verdik veya geri aldık
-                    if (request.PaymentType == PaymentType.Cash)
+                    // Kasa işlemi
+                    if (request.PaymentType == PaymentType.Cash && request.CashId.HasValue)
                     {
                         await _cashRepository.AddAsync(new CashTransaction
                         {
                             TransactionId = sharedTransactionId,
-                            CashId = request.CashId!.Value,
+                            CashId = request.CashId.Value,
                             Date = invoice.InvoiceDate,
-                            // Satış İadesi: Kasadan para ÇIKAR (Credit), Alış İadesi: Kasaya para GİRER (Debit)
+                            // Satış İadesi: Biz müşteriye para iade ederiz, kasadan ÇIKAR (Credit)
+                            // Alış İadesi: Tedarikçi bize para iade eder, kasaya GİRER (Debit)
                             Debit = isSalesReturn ? 0 : invoice.GrandTotal,
                             Credit = isSalesReturn ? invoice.GrandTotal : 0,
                             Description = $"İade İşlemi: {invoice.InvoiceNumber}"
                         }, cancellationToken);
                     }
-                    else if (request.PaymentType == PaymentType.Bank)
+                    // Banka işlemi
+                    else if (request.PaymentType == PaymentType.Bank && request.BankId.HasValue)
                     {
                         await _bankRepository.AddAsync(new BankTransaction
                         {
                             TransactionId = sharedTransactionId,
-                            BankId = request.BankId!.Value,
+                            BankId = request.BankId.Value,
                             Date = invoice.InvoiceDate,
                             Debit = isSalesReturn ? 0 : invoice.GrandTotal,
                             Credit = isSalesReturn ? invoice.GrandTotal : 0,

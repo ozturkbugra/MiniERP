@@ -43,6 +43,7 @@ namespace MiniERP.Application.Features.Orders.Queries.GetOrderById
                 order.Id,
                 order.OrderNumber,
                 order.OrderDate,
+                order.CustomerId,
                 customer?.Name ?? "Tanımsız",
                 warehouseDict.TryGetValue(order.WarehouseId, out var wName) ? wName : "Tanımsız Depo",
                 order.Status.ToString(),
