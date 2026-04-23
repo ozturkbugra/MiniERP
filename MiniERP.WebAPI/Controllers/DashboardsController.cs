@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Dashboard.Queries.GetDashboardSummary;
 using MiniERP.Application.Features.Dashboard.Queries.GetStockSnapshot;
@@ -8,6 +9,7 @@ namespace MiniERP.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class DashboardsController : ControllerBase
     {
         private readonly IMediator _mediator;
