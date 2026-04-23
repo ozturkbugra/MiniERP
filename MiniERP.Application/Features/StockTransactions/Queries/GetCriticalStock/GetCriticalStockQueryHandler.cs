@@ -44,7 +44,7 @@ namespace MiniERP.Application.Features.StockTransactions.Queries.GetCriticalStoc
                     g.Key.WarehouseId,
                     g.Key.WarehouseName,
                     g.Key.CriticalLevel,
-                    Total = g.Sum(s => s.Type == StockTransactionType.In ? s.Quantity : -s.Quantity)
+                    Total = g.Sum(s => ((int)s.Type == (int)StockTransactionType.In || (int)s.Type == 3) ? s.Quantity : -s.Quantity)
                 })
                 .Where(x => x.Total <= x.CriticalLevel)
                 .Select(x => new CriticalStockResponse(
