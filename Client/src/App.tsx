@@ -29,6 +29,8 @@ import ProductLedger from './pages/reports/ProductLedger';
 import AccountStatements from './pages/reports/AccountStatements';
 import CustomerBalances from './pages/reports/CustomerBalances';
 import CustomerStatements from './pages/reports/CustomerStatement'
+import InvoiceDetail from './pages/InvoiceDetail'; // Kendi dosya yoluna göre düzenle
+
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -85,7 +87,8 @@ function App() {
         <Route path="products" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Products.View}><Products /></PermissionGuard>} />
         <Route path="orders" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Orders.View}><Orders /></PermissionGuard>} />
         <Route path="invoices" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Invoices.View}><Invoices /></PermissionGuard>} />
-
+        <Route path="invoices/print/:id" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Invoices.View}><InvoiceDetail /></PermissionGuard>} />
+        
         {/* 📊 RAPORLAR */}
         <Route
           path="reports/stock-snapshot"

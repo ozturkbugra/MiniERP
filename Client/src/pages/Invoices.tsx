@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DataTable from '../components/Common/DataTable';
 import AppModal from '../components/Common/AppModal';
 import AppSelect, { type SelectOption } from '../components/Common/AppSelect';
@@ -21,6 +22,7 @@ const INVOICE_TYPES = [
 ];
 
 const Invoices = () => {
+  const navigate = useNavigate();
   const { hasPermission } = useAuthStore();
   const { defaultWarehouseId } = useSettingsStore();
 
@@ -62,7 +64,7 @@ const Invoices = () => {
     quantity: 1,
     unitPrice: 0,
     discountRate: 0,
-    vatRate: 20 // 🚀 Dinamik KDV başlangıç değeri
+    vatRate: 20 
   });
 
   const fetchData = useCallback(async () => {
@@ -97,15 +99,14 @@ const Invoices = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // 🚀 MANTIKSAL CARİ FİLTRELEME
   const getFilteredCustomers = (): SelectOption[] => {
     return rawCustomers
-      .filter(c => {
+      .filter((c: any) => {
         if (formData.type === 2 || formData.type === 4) return c.type === 1 || c.type === 3 || c.type === "Buyer" || c.type === "Both";
         if (formData.type === 1 || formData.type === 3) return c.type === 2 || c.type === 3 || c.type === "Supplier" || c.type === "Both";
         return true;
       })
-      .map(c => ({ label: c.name || "İsimsiz", value: c.id }));
+      .map((c: any) => ({ label: c.name || "İsimsiz", value: c.id }));
   };
 
   const handleOrderChange = async (orderId: string) => {
@@ -141,7 +142,6 @@ const Invoices = () => {
     } catch (err) { alert("Sipariş verisi alınamadı."); }
   };
 
-  // 🚀 TOPLAM HESAPLAMA (Ara Toplam, KDV, Genel Toplam)
   const calculateTotals = () => {
     const subTotal = formData.details.reduce((acc, curr) => {
       const gross = curr.quantity * curr.unitPrice;
@@ -204,7 +204,7 @@ const Invoices = () => {
       const response = await api.post("/Invoices/Approve", approveData);
       if (response.data.isSuccess) {
         setShowApproveModal(false);
-        fetchData(); // Listeyi yenile
+        fetchData(); 
         alert("Fatura başarıyla onaylandı ve finansal kayıtlar işlendi.");
       } else {
         alert(response.data.message || "Onay hatası.");
@@ -218,56 +218,73 @@ const Invoices = () => {
 
   return (
     <div className="page-invoices animate__animated animate__fadeIn">
-      <DataTable<any>
-        title="Fatura Yönetimi"
-        description="Fatura ve iade süreçlerini dinamik KDV hesaplama ile yönetin."
-        data={invoices}
-        onAdd={() => {
-          setFormData({ ...formData, customerId: "", warehouseId: defaultWarehouseId || "", details: [], orderId: null });
-          setShowCreateModal(true);
-        }}
-        columns={[
-          { header: "FATURA NO", accessor: (i) => <span className="fw-bold text-primary">{i.invoiceNumber}</span> },
-          { header: "TARİH", accessor: (i) => new Date(i.invoiceDate).toLocaleDateString('tr-TR') },
-          { header: "CARİ", accessor: (i) => i.customerName },
-          { header: "TOPLAM", accessor: (i) => <span className="text-success fw-bold">{i.grandTotal.toLocaleString('tr-TR')} ₺</span> },
-          { 
-            header: "DURUM", 
-            accessor: (i) => {
-              const status = INVOICE_STATUS[i.status] || { label: i.status, badge: "bg-secondary" };
-              return <span className={`badge border ${status.badge}`}>{status.label}</span>;
-            } 
-          },
-          {
-            header: "İŞLEMLER",
-            className: "text-end",
-            accessor: (i) => (
-              <div className="d-flex justify-content-end gap-1">
-                <button className="btn btn-sm btn-outline-info border-0 p-2" onClick={async () => {
-                   const res = await api.get(`/Invoices/${i.id}`);
-                   setSelectedInvoice(res.data.data);
-                   setShowDetailsModal(true);
-                }} title="Görüntüle"><i className="bi bi-eye"></i></button>
-                
-                {i.status === "Draft" && hasPermission(APP_PERMISSIONS.Invoices.Approve) && (
-                  <button className="btn btn-sm btn-success px-3" onClick={() => {
-                    setApproveData({ ...approveData, id: i.id, paymentType: 1 });
-                    setShowApproveModal(true);
-                  }}>Onayla</button>
-                )}
+      {loading ? (
+        <div className="text-center py-5">
+          <div className="spinner-border text-primary" role="status"></div>
+          <div className="mt-2 text-muted">Faturalar yükleniyor...</div>
+        </div>
+      ) : (
+        <DataTable<any>
+          title="Fatura Yönetimi"
+          description="Fatura ve iade süreçlerini dinamik KDV hesaplama ile yönetin."
+          data={invoices}
+          onAdd={() => {
+            setFormData({ ...formData, customerId: "", warehouseId: defaultWarehouseId || "", details: [], orderId: null });
+            setShowCreateModal(true);
+          }}
+          columns={[
+            { header: "FATURA NO", accessor: (i: any) => <span className="fw-bold text-primary">{i.invoiceNumber}</span> },
+            { header: "TARİH", accessor: (i: any) => new Date(i.invoiceDate).toLocaleDateString('tr-TR') },
+            { header: "CARİ", accessor: (i: any) => i.customerName },
+            { header: "TOPLAM", accessor: (i: any) => <span className="text-success fw-bold">{i.grandTotal.toLocaleString('tr-TR')} ₺</span> },
+            { 
+              header: "DURUM", 
+              accessor: (i: any) => {
+                const status = INVOICE_STATUS[i.status] || { label: i.status, badge: "bg-secondary" };
+                return <span className={`badge border ${status.badge}`}>{status.label}</span>;
+              } 
+            },
+            {
+              header: "İŞLEMLER",
+              className: "text-end",
+              accessor: (i: any) => (
+                <div className="d-flex justify-content-end gap-1">
+                  
+                  {/* 🚀 YENİ EKLENEN PDF BUTONU */}
+                  <button 
+                    className="btn btn-sm btn-outline-warning border-0 p-2" 
+                    onClick={() => navigate(`/invoices/print/${i.id}`)} 
+                    title="Yazdır / PDF İndir"
+                  >
+                    <i className="bi bi-printer fs-6"></i>
+                  </button>
 
-                {i.status === "Approved" && hasPermission(APP_PERMISSIONS.Invoices.Cancel) && (
-                  <button className="btn btn-sm btn-outline-danger border-0 p-2" onClick={async () => {
-                    if(!confirm("Fatura iptal edilsin mi?")) return;
-                    await api.post("/Invoices/Cancel", { id: i.id });
-                    fetchData();
-                  }} title="İptal Et"><i className="bi bi-x-circle"></i></button>
-                )}
-              </div>
-            )
-          }
-        ]}
-      />
+                  <button className="btn btn-sm btn-outline-info border-0 p-2" onClick={async () => {
+                     const res = await api.get(`/Invoices/${i.id}`);
+                     setSelectedInvoice(res.data.data);
+                     setShowDetailsModal(true);
+                  }} title="Görüntüle"><i className="bi bi-eye"></i></button>
+                  
+                  {i.status === "Draft" && hasPermission(APP_PERMISSIONS.Invoices.Approve) && (
+                    <button className="btn btn-sm btn-success px-3" onClick={() => {
+                      setApproveData({ ...approveData, id: i.id, paymentType: 1 });
+                      setShowApproveModal(true);
+                    }}>Onayla</button>
+                  )}
+
+                  {i.status === "Approved" && hasPermission(APP_PERMISSIONS.Invoices.Cancel) && (
+                    <button className="btn btn-sm btn-outline-danger border-0 p-2" onClick={async () => {
+                      if(!confirm("Fatura iptal edilsin mi?")) return;
+                      await api.post("/Invoices/Cancel", { id: i.id });
+                      fetchData();
+                    }} title="İptal Et"><i className="bi bi-x-circle"></i></button>
+                  )}
+                </div>
+              )
+            }
+          ]}
+        />
+      )}
 
       {/* 🚀 MODAL: FATURA OLUŞTURMA */}
       <AppModal show={showCreateModal} title="Yeni Fatura Oluştur" onClose={() => setShowCreateModal(false)} onSave={handleSave} size="xl">
@@ -287,10 +304,10 @@ const Invoices = () => {
                 </select>
               </div>
               <div className="col-md-4">
-                <AppSelect label="Fatura Deposu" options={warehouses} value={formData.warehouseId} onChange={(val) => setFormData({...formData, warehouseId: val, details: formData.details.map(d => ({...d, warehouseId: val}))})} />
+                <AppSelect label="Fatura Deposu" options={warehouses} value={formData.warehouseId} onChange={(val: string) => setFormData({...formData, warehouseId: val, details: formData.details.map(d => ({...d, warehouseId: val}))})} />
               </div>
               <div className="col-12">
-                <AppSelect label={formData.type === 2 || formData.type === 4 ? "Müşteri (Alıcı)" : "Tedarikçi (Satıcı)"} options={getFilteredCustomers()} value={formData.customerId} onChange={(val) => setFormData({...formData, customerId: val})} isSearchable />
+                <AppSelect label={formData.type === 2 || formData.type === 4 ? "Müşteri (Alıcı)" : "Tedarikçi (Satıcı)"} options={getFilteredCustomers()} value={formData.customerId} onChange={(val: string) => setFormData({...formData, customerId: val})} isSearchable />
               </div>
             </div>
           </div>
@@ -298,19 +315,18 @@ const Invoices = () => {
           <div className="col-12 p-3 rounded border">
             <div className="row g-2 align-items-end">
               <div className="col-md-3">
-                <AppSelect label="Ürün" options={products.map(p => ({ label: p.name, value: p.id }))} value={currentLine.productId} onChange={(val) => {
+                <AppSelect label="Ürün" options={products.map(p => ({ label: p.name, value: p.id }))} value={currentLine.productId} onChange={(val: string) => {
                     const p = products.find(x => x.id === val);
                     setCurrentLine({...currentLine, productId: val, unitPrice: p?.defaultPrice || 0});
                 }} isSearchable />
               </div>
               <div className="col-md-2">
                 <label className="form-label small">Depo</label>
-                <AppSelect options={warehouses} value={currentLine.warehouseId} onChange={(val) => setCurrentLine({...currentLine, warehouseId: val})} />
+                <AppSelect options={warehouses} value={currentLine.warehouseId} onChange={(val: string) => setCurrentLine({...currentLine, warehouseId: val})} />
               </div>
               <div className="col-md-1"><label className="form-label small">Miktar</label><input type="number" className="form-control form-control-sm" value={currentLine.quantity} onChange={(e) => setCurrentLine({...currentLine, quantity: parseFloat(e.target.value)})} /></div>
               <div className="col-md-2"><label className="form-label small">Birim Fiyat</label><input type="number" className="form-control form-control-sm" value={currentLine.unitPrice} onChange={(e) => setCurrentLine({...currentLine, unitPrice: parseFloat(e.target.value)})} /></div>
               
-              {/* 🚀 KDV SEÇİMİ */}
               <div className="col-md-2">
                 <label className="form-label small">KDV (%)</label>
                 <select className="form-select form-select-sm" value={currentLine.vatRate} onChange={(e) => setCurrentLine({...currentLine, vatRate: parseInt(e.target.value)})}>
@@ -342,7 +358,6 @@ const Invoices = () => {
             </table>
           </div>
 
-          {/* 🚀 FATURA TOPLAMI BÖLÜMÜ */}
           <div className="col-12 border-top pt-3">
             <div className="row justify-content-end">
               <div className="col-md-4">
@@ -366,8 +381,8 @@ const Invoices = () => {
               <div className="form-check"><input className="form-check-input" type="radio" checked={approveData.paymentType === 3} onChange={() => setApproveData({...approveData, paymentType: 3, cashId: null})} /><label className="form-check-label">Banka</label></div>
             </div>
           </div>
-          {approveData.paymentType === 2 && <div className="col-12"><AppSelect label="İşlem Yapılacak Kasa" options={cashes} value={approveData.cashId || ""} onChange={(val) => setApproveData({...approveData, cashId: val})} isSearchable /></div>}
-          {approveData.paymentType === 3 && <div className="col-12"><AppSelect label="İşlem Yapılacak Banka" options={banks} value={approveData.bankId || ""} onChange={(val) => setApproveData({...approveData, bankId: val})} isSearchable /></div>}
+          {approveData.paymentType === 2 && <div className="col-12"><AppSelect label="İşlem Yapılacak Kasa" options={cashes} value={approveData.cashId || ""} onChange={(val: string) => setApproveData({...approveData, cashId: val})} isSearchable /></div>}
+          {approveData.paymentType === 3 && <div className="col-12"><AppSelect label="İşlem Yapılacak Banka" options={banks} value={approveData.bankId || ""} onChange={(val: string) => setApproveData({...approveData, bankId: val})} isSearchable /></div>}
         </div>
       </AppModal>
 
