@@ -24,7 +24,7 @@ import Finance from './pages/Finance';
 import Orders from './pages/Orders';
 import Invoices from './pages/Invoices';
 import StockSnapshot from './pages/reports/StockSnapshot';
-// import CriticalStocks from './pages/reports/CriticalStocks'; // İleride açacağız
+import CriticalStocks from './pages/reports/CriticalStocks'; 
 // import ProductLedger from './pages/reports/ProductLedger'; // İleride açacağız
 
 function App() {
@@ -93,8 +93,7 @@ function App() {
           }
         />
 
-        {/* Şimdilik yorum satırında, sayfaları kodladıkça açarsın */}
-        {/* <Route 
+        { <Route 
           path="reports/critical-stocks" 
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
@@ -102,15 +101,15 @@ function App() {
             </PermissionGuard>
           } 
         />
-        <Route 
+        /*<Route 
           path="reports/product-ledger" 
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
               <ProductLedger />
             </PermissionGuard>
           } 
-        /> 
-        */}
+        /> */
+        }
 
 
         <Route
