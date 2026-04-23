@@ -20,9 +20,12 @@ import Cashes from './pages/Cashes';
 import Customers from './pages/Customers';
 import Products from './pages/Products';
 import StockTransactions from './pages/StockTransactions';
-import Finance from './pages/Finance'; // 🚀 YENİ
+import Finance from './pages/Finance'; 
 import Orders from './pages/Orders';
 import Invoices from './pages/Invoices';
+import StockSnapshot from './pages/reports/StockSnapshot';
+// import CriticalStocks from './pages/reports/CriticalStocks'; // İleride açacağız
+// import ProductLedger from './pages/reports/ProductLedger'; // İleride açacağız
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -80,13 +83,43 @@ function App() {
         <Route path="orders" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Orders.View}><Orders /></PermissionGuard>} />
         <Route path="invoices" element={<PermissionGuard requiredPermission={APP_PERMISSIONS.Invoices.View}><Invoices /></PermissionGuard>} />
 
+        {/* 📊 RAPORLAR */}
+        <Route
+          path="reports/stock-snapshot"
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
+              <StockSnapshot />
+            </PermissionGuard>
+          }
+        />
+
+        {/* Şimdilik yorum satırında, sayfaları kodladıkça açarsın */}
+        {/* <Route 
+          path="reports/critical-stocks" 
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
+              <CriticalStocks />
+            </PermissionGuard>
+          } 
+        />
         <Route 
-            path="stocktransactions" 
-            element={
-                <PermissionGuard requiredPermission={APP_PERMISSIONS.StockTransactions.View}>
-                    <StockTransactions />
-                </PermissionGuard>
-            } 
+          path="reports/product-ledger" 
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
+              <ProductLedger />
+            </PermissionGuard>
+          } 
+        /> 
+        */}
+
+
+        <Route
+          path="stocktransactions"
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.StockTransactions.View}>
+              <StockTransactions />
+            </PermissionGuard>
+          }
         />
 
         {/* 💸 FİNANS YÖNETİMİ */}

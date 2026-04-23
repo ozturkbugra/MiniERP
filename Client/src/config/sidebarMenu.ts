@@ -49,6 +49,16 @@ export const MENU_ITEMS = [
     ]
   },
   {
+    title: "Raporlar",
+    isHeader: true,
+    permissions: [APP_PERMISSIONS.Reports.View],
+    children: [
+      { title: "Stokta Kalan", path: "/reports/stock-snapshot", icon: "ph-chart-bar", permission: APP_PERMISSIONS.Reports.View },
+      { title: "Kritik Stoklar", path: "/reports/critical-stocks", icon: "ph-warning-circle", permission: APP_PERMISSIONS.Reports.View },
+      { title: "Ürün Defteri", path: "/reports/product-ledger", icon: "ph-book-open", permission: APP_PERMISSIONS.Reports.View },
+    ]
+  },
+  {
     title: "Sistem",
     isHeader: true,
     permissions: [APP_PERMISSIONS.Users.View, APP_PERMISSIONS.Roles.View],

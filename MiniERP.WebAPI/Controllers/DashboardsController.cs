@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Features.Dashboard.Queries.GetDashboardSummary;
 using MiniERP.Application.Features.Dashboard.Queries.GetStockSnapshot;
 using MiniERP.Application.Features.Products.Queries.GetProductLedger;
+using MiniERP.Domain.Enums;
 
 namespace MiniERP.WebAPI.Controllers
 {
@@ -33,6 +34,7 @@ namespace MiniERP.WebAPI.Controllers
 
         // 🚀 YENİ: Ürün Defteri Endpoint'i
         [HttpGet("ProductLedger/{productId}")]
+        [Authorize(Policy = AppPermissions.Reports.View)]
         public async Task<IActionResult> GetProductLedger(Guid productId)
         {
             // Belirli bir ürünün tüm alım/satım geçmişini getirir
@@ -45,6 +47,8 @@ namespace MiniERP.WebAPI.Controllers
         }
 
         [HttpGet("StockSnapshot")]
+        [Authorize(Policy = AppPermissions.Reports.View)]
+
         public async Task<IActionResult> GetStockSnapshot([FromQuery] DateTime targetDate, [FromQuery] Guid? warehouseId)
         {
             var response = await _mediator.Send(new GetStockSnapshotQuery(targetDate, warehouseId));
