@@ -91,7 +91,7 @@ public sealed class TransactionsController : ControllerBase
     }
 
     [HttpGet("CustomerStatement/{customerId}")]
-    [Authorize(Policy = AppPermissions.Transactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetCustomerStatement(Guid customerId, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(new GetCustomerStatementQuery(customerId), cancellationToken);
@@ -99,7 +99,7 @@ public sealed class TransactionsController : ControllerBase
     }
 
     [HttpGet("BankStatement/{bankId}")]
-    [Authorize(Policy = AppPermissions.Transactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetBankStatement(Guid bankId, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetBankStatementQuery(bankId), cancellationToken);
@@ -107,7 +107,7 @@ public sealed class TransactionsController : ControllerBase
     }
 
     [HttpGet("CashStatement/{cashId}")]
-    [Authorize(Policy = AppPermissions.Transactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetCashStatement(Guid cashId, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetCashStatementQuery(cashId), cancellationToken);
@@ -115,7 +115,7 @@ public sealed class TransactionsController : ControllerBase
     }
 
     [HttpGet("CustomerBalances")]
-    [Authorize(Policy = AppPermissions.Transactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetCustomerBalances(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetCustomerListWithBalanceQuery(), cancellationToken);
@@ -123,7 +123,7 @@ public sealed class TransactionsController : ControllerBase
     }
 
     [HttpGet("FinancialSummary")]
-    [Authorize(Policy = AppPermissions.Transactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetFinancialSummary(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetFinancialSummaryQuery(), cancellationToken);
@@ -131,7 +131,7 @@ public sealed class TransactionsController : ControllerBase
     }
 
     [HttpGet("AccountBalance/{accountId}")]
-    [Authorize(Policy = AppPermissions.Transactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetAccountBalance(Guid accountId, [FromQuery] bool isBank, [FromQuery] DateTime? date, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(new GetAccountBalanceQuery(accountId, isBank, date), cancellationToken);
@@ -139,7 +139,7 @@ public sealed class TransactionsController : ControllerBase
     }
 
     [HttpGet("FinancialStatus")]
-    [Authorize(Policy = AppPermissions.Transactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetFinancialStatus(CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(new GetFinancialStatusQuery(), cancellationToken);

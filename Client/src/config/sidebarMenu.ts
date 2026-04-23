@@ -56,6 +56,9 @@ export const MENU_ITEMS = [
       { title: "Stokta Kalan", path: "/reports/stock-snapshot", icon: "ph-chart-bar", permission: APP_PERMISSIONS.Reports.View },
       { title: "Kritik Stoklar", path: "/reports/critical-stocks", icon: "ph-warning-circle", permission: APP_PERMISSIONS.Reports.View },
       { title: "Ürün Defteri", path: "/reports/product-ledger", icon: "ph-book-open", permission: APP_PERMISSIONS.Reports.View },
+      { title: "Hesap Ekstreleri", path: "/reports/account-statements", icon: "ph-file-text", permission: APP_PERMISSIONS.Reports.View },
+      { title: "Cari Bakiyeleri", path: "/reports/customer-balances", icon: "ph-users-three", permission: APP_PERMISSIONS.Reports.View },
+      { title: "Cari Ekstresi", path: "/reports/customer-statement", icon: "ph-list-dashes", permission: APP_PERMISSIONS.Reports.View } // 🚀 YENİ EKLENEN
     ]
   },
   {

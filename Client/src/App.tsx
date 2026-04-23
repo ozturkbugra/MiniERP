@@ -26,6 +26,9 @@ import Invoices from './pages/Invoices';
 import StockSnapshot from './pages/reports/StockSnapshot';
 import CriticalStocks from './pages/reports/CriticalStocks';
 import ProductLedger from './pages/reports/ProductLedger';
+import AccountStatements from './pages/reports/AccountStatements';
+import CustomerBalances from './pages/reports/CustomerBalances';
+import CustomerStatements from './pages/reports/CustomerStatement'
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -101,7 +104,7 @@ function App() {
             </PermissionGuard>
           }
         />
-        
+
         <Route
           path="reports/product-ledger"
           element={
@@ -120,6 +123,33 @@ function App() {
           }
         />
 
+        <Route
+          path="reports/account-statements"
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
+              <AccountStatements />
+            </PermissionGuard>
+          }
+        />
+
+        <Route
+          path="reports/customer-balances"
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
+              <CustomerBalances />
+            </PermissionGuard>
+          }
+        />
+
+
+        <Route
+          path="reports/customer-statement"
+          element={
+            <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
+              <CustomerStatements />
+            </PermissionGuard>
+          }
+        />
         {/* 💸 FİNANS YÖNETİMİ */}
         <Route
           path="finance"
