@@ -6,15 +6,15 @@ import DataTable from '../../components/Common/DataTable';
 import AppSelect from '../../components/Common/AppSelect';
 import type { SelectOption } from '../../components/Common/AppSelect';
 
-// 🚀 Backend'deki CriticalStockResponse ile birebir uyumlu
+// 🚀 Backend JSON verisiyle %100 uyumlu hale getirildi
 interface CriticalStockResponse {
-  id: string; // DataTable için mapped id
+  id: string; 
   productId: string;
   productName: string;
   warehouseId: string;
   warehouseName: string;
-  total: number;         // Mevcut bakiye
-  criticalLevel: number; // Ürün kartındaki kritik limit
+  currentQuantity: number; // 💎 'total' olan alan 'currentQuantity' olarak güncellendi
+  criticalLevel: number; 
 }
 
 interface Warehouse {
@@ -26,15 +26,11 @@ const CriticalStocks = () => {
   const { hasPermission } = useAuthStore();
   const canViewReports = hasPermission(APP_PERMISSIONS.Reports?.View);
 
-  // Filtre State'i
   const [warehouseId, setWarehouseId] = useState<string>("");
-
-  // Veri State'leri
   const [data, setData] = useState<CriticalStockResponse[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  // 1. Depoları Çekme
   const fetchWarehouses = useCallback(async () => {
     try {
       const response = await api.get("/Warehouses");
@@ -46,11 +42,9 @@ const CriticalStocks = () => {
     }
   }, []);
 
-  // 2. Kritik Stok Sorgulama (Button Trigger)
   const fetchCriticalStock = useCallback(async () => {
     try {
       setLoading(true);
-      // 🚀 Endpoint: api/StockTransactions/critical-stock
       const response = await api.get("/StockTransactions/critical-stock", {
         params: {
           warehouseId: warehouseId || null
@@ -82,7 +76,7 @@ const CriticalStocks = () => {
     { 
       header: "ÜRÜN ADI", 
       accessor: "productName" as keyof CriticalStockResponse,
-      className: "fw-bold text-light"
+      className: "fw-bold"
     },
     { 
       header: "DEPO", 
@@ -93,8 +87,8 @@ const CriticalStocks = () => {
       header: "MEVCUT STOK", 
       className: "text-center",
       accessor: (item: CriticalStockResponse) => (
-        <span className="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 fs-6">
-          {item.total}
+        <span className="badge bg-danger bg-opacity-10border border-danger border-opacity-25 px-3 py-2 fs-6">
+          {item.currentQuantity}
         </span>
       )
     },
@@ -111,7 +105,7 @@ const CriticalStocks = () => {
         header: "DURUM",
         className: "text-end pe-4",
         accessor: (item: CriticalStockResponse) => {
-            const diff = item.criticalLevel - item.total;
+            const diff = item.criticalLevel - item.currentQuantity; // 🚀 Burası güncellendi
             return (
                 <span className="text-warning small fw-medium">
                     <i className="bi bi-exclamation-triangle me-1"></i>
@@ -140,7 +134,6 @@ const CriticalStocks = () => {
         <p className="text-muted small">Tanımlanan kritik seviyenin altına düşen ürünleri analiz edin.</p>
       </div>
 
-      {/* Filtre Paneli */}
       <div className="card shadow-sm border-0 mb-4 p-3">
         <div className="card-body">
           <div className="row g-4 align-items-end">
@@ -168,7 +161,6 @@ const CriticalStocks = () => {
         </div>
       </div>
 
-      {/* Veri Tablosu */}
       {loading ? (
         <div className="text-center py-5">
           <div className="spinner-border text-primary" role="status"></div>

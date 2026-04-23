@@ -20,12 +20,12 @@ import Cashes from './pages/Cashes';
 import Customers from './pages/Customers';
 import Products from './pages/Products';
 import StockTransactions from './pages/StockTransactions';
-import Finance from './pages/Finance'; 
+import Finance from './pages/Finance';
 import Orders from './pages/Orders';
 import Invoices from './pages/Invoices';
 import StockSnapshot from './pages/reports/StockSnapshot';
-import CriticalStocks from './pages/reports/CriticalStocks'; 
-// import ProductLedger from './pages/reports/ProductLedger'; // İleride açacağız
+import CriticalStocks from './pages/reports/CriticalStocks';
+import ProductLedger from './pages/reports/ProductLedger';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -93,24 +93,23 @@ function App() {
           }
         />
 
-        { <Route 
-          path="reports/critical-stocks" 
+        <Route
+          path="reports/critical-stocks"
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
               <CriticalStocks />
             </PermissionGuard>
-          } 
+          }
         />
-        /*<Route 
-          path="reports/product-ledger" 
+        
+        <Route
+          path="reports/product-ledger"
           element={
             <PermissionGuard requiredPermission={APP_PERMISSIONS.Reports.View}>
               <ProductLedger />
             </PermissionGuard>
-          } 
-        /> */
-        }
-
+          }
+        />
 
         <Route
           path="stocktransactions"
