@@ -136,6 +136,8 @@ public static class DbInitializer
                 AppPermissions.Units.Create,
                 AppPermissions.Units.Update,
                 AppPermissions.Units.Delete,
+                AppPermissions.Units.View,
+                
 
                 // Depo Yetkileri
                 AppPermissions.Warehouses.View,

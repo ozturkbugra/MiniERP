@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import DataTable from '../components/Common/DataTable';
 import AppModal from '../components/Common/AppModal';
-import AppSelect from '../components/Common/AppSelect'; // 🚀 Aramalı Select bileşenimiz
+import AppSelect, { type SelectOption } from '../components/Common/AppSelect'; 
 import api from '../api/axiosInstance';
 import { useAuthStore } from '../store/useAuthStore';
 import { APP_PERMISSIONS } from '../constants/permissions';
@@ -31,10 +31,13 @@ const Products = () => {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  // 🚀 Select kutuları için bağımlılıklar
-  const [categories, setCategories] = useState<{label: string, value: string}[]>([]);
-  const [brands, setBrands] = useState<{label: string, value: string}[]>([]);
-  const [units, setUnits] = useState<{label: string, value: string}[]>([]);
+  // Bağımlılıklar
+  const [categories, setCategories] = useState<SelectOption[]>([]);
+  const [brands, setBrands] = useState<SelectOption[]>([]);
+  const [units, setUnits] = useState<SelectOption[]>([]);
+
+  // 🚀 Fiyat Görünümü İçin Intermediate State (Virgül hatasını çözer)
+  const [displayPrice, setDisplayPrice] = useState<string>("");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -43,13 +46,26 @@ const Products = () => {
     barcode: "",
     defaultPrice: 0,
     criticalStockLevel: 0,
-    vatRate: 20, // Varsayılan %20
+    vatRate: 20,
     categoryId: "",
     brandId: "",
     unitId: ""
   });
 
-  // Bağımlı verileri çekme (Kategori, Marka, Birim)
+  // 🛠️ YARDIMCI FONKSİYONLAR (Formatlama)
+  const maskCurrency = (val: string) => {
+    let clean = val.replace(/[^0-9,]/g, "");
+    const parts = clean.split(",");
+    if (parts.length > 2) clean = parts[0] + "," + parts[1];
+    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return parts.length > 1 ? `${integerPart},${parts[1].slice(0, 2)}` : integerPart;
+  };
+
+  const unmaskPrice = (val: string) => {
+    if (!val) return 0;
+    return parseFloat(val.replace(/\./g, "").replace(",", ".")) || 0;
+  };
+
   const fetchDependencies = useCallback(async () => {
     try {
       const [catRes, brandRes, unitRes] = await Promise.all([
@@ -62,7 +78,7 @@ const Products = () => {
       if (brandRes.data.isSuccess) setBrands(brandRes.data.data.map((x: any) => ({ label: x.name, value: x.id })));
       if (unitRes.data.isSuccess) setUnits(unitRes.data.data.map((x: any) => ({ label: x.name, value: x.id })));
     } catch (error) {
-      console.error("Bağımlı veriler çekilemedi:", error);
+      console.error("Bağımlı veriler çekilemedi (403 veya Bağlantı Hatası):", error);
     }
   }, []);
 
@@ -93,10 +109,11 @@ const Products = () => {
 
   const handleSave = async () => {
     try {
+      const payload = { ...formData };
       if (selectedId) {
-        await api.put(`/Products/${selectedId}`, { id: selectedId, ...formData });
+        await api.put(`/Products/${selectedId}`, { id: selectedId, ...payload });
       } else {
-        await api.post("/Products", formData);
+        await api.post("/Products", payload);
       }
       setShowModal(false);
       fetchProducts();
@@ -119,16 +136,36 @@ const Products = () => {
   const openCreateModal = () => {
     setSelectedId(null);
     setFormData({ code: "", name: "", barcode: "", defaultPrice: 0, criticalStockLevel: 0, vatRate: 20, categoryId: "", brandId: "", unitId: "" });
+    setDisplayPrice(""); // Inputu sıfırla
     setShowModal(true);
   };
 
-  const openEditModal = (p: Product) => {
+ const openEditModal = (p: any) => {
     setSelectedId(p.id);
+
+    // 🚀 İsimden ID Bulma Operasyonu
+    // Elimizdeki isimle, baştan çektiğimiz bağımlılıklar listesinde eşleşen ID'yi yakalıyoruz.
+    const foundCategory = categories.find(c => c.label === p.categoryName);
+    const foundBrand = brands.find(b => b.label === p.brandName);
+    const foundUnit = units.find(u => u.label === p.unitName);
+
     setFormData({ 
-      code: p.code, name: p.name, barcode: p.barcode, 
-      defaultPrice: p.defaultPrice, criticalStockLevel: p.criticalStockLevel, 
-      vatRate: p.vatRate, categoryId: p.categoryId, brandId: p.brandId, unitId: p.unitId 
+      code: p.code || "", 
+      name: p.name || "", 
+      barcode: p.barcode || "", 
+      defaultPrice: p.defaultPrice || 0, 
+      criticalStockLevel: p.criticalStockLevel || 0, 
+      vatRate: p.vatRate || 20, 
+      // 🎯 Eğer isimden ID bulduysak onu kullan, yoksa boş bırak
+      categoryId: foundCategory ? foundCategory.value.toString() : "", 
+      brandId: foundBrand ? foundBrand.value.toString() : "", 
+      unitId: foundUnit ? foundUnit.value.toString() : "" 
     });
+
+    const initialPrice = p.defaultPrice || 0;
+    const initialFormatted = initialPrice > 0 ? maskCurrency(initialPrice.toString().replace(".", ",")) : "";
+    setDisplayPrice(initialFormatted);
+    
     setShowModal(true);
   };
 
@@ -203,7 +240,7 @@ const Products = () => {
         title={selectedId ? "Ürün Güncelle" : "Yeni Ürün Kartı"} 
         onClose={() => setShowModal(false)}
         onSave={handleSave}
-        size="lg" // 🚀 Ürün formu kalabalık olduğu için modalı genişlettik
+        size="lg"
       >
         <div className="row g-3">
           <div className="col-md-4">
@@ -230,7 +267,8 @@ const Products = () => {
               options={categories}
               value={formData.categoryId}
               onChange={(val) => setFormData(prev => ({...prev, categoryId: val}))}
-              placeholder="Seçiniz..."
+              placeholder="Ara ve Seç..."
+              isSearchable={true} 
             />
           </div>
           <div className="col-md-4">
@@ -239,7 +277,8 @@ const Products = () => {
               options={brands}
               value={formData.brandId}
               onChange={(val) => setFormData(prev => ({...prev, brandId: val}))}
-              placeholder="Seçiniz..."
+              placeholder="Ara ve Seç..."
+              isSearchable={true} 
             />
           </div>
           <div className="col-md-4">
@@ -248,13 +287,25 @@ const Products = () => {
               options={units}
               value={formData.unitId}
               onChange={(val) => setFormData(prev => ({...prev, unitId: val}))}
-              placeholder="Seçiniz..."
+              placeholder="Ara ve Seç..."
+              isSearchable={true} 
             />
           </div>
 
           <div className="col-md-6">
             <label className="form-label small fw-bold">Varsayılan Satış Fiyatı (₺)</label>
-            <input type="number" name="defaultPrice" value={formData.defaultPrice} onChange={handleInputChange} className="form-control form-control-sm" />
+            <input 
+              type="text" 
+              className="form-control form-control-sm text-end fw-bold"
+              placeholder="0,00"
+              value={displayPrice}
+              onChange={(e) => {
+                const masked = maskCurrency(e.target.value);
+                setDisplayPrice(masked);
+                setFormData(prev => ({ ...prev, defaultPrice: unmaskPrice(masked) }));
+              }}
+              onFocus={(e) => e.target.select()}
+            />
           </div>
           <div className="col-md-6">
             <label className="form-label small fw-bold">Kritik Stok Seviyesi</label>
