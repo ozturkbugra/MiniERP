@@ -51,6 +51,15 @@ namespace MiniERP.Application.Features.StockTransactions.Queries.GetAllStockTran
                     createdName = name ?? "Sistem";
                 }
 
+                // 🚀 TİP İSMİNİ DİNAMİKLEŞTİRDİK
+                string typeLabel = x.Type.ToString() switch
+                {
+                    "In" => "Giriş",
+                    "Out" => "Çıkış",
+                    "Opening" => "Devir / Açılış", // Senin Enum'daki adı Opening ise böyle, farklıysa onu yaz aga
+                    _ => "Belirsiz" // Fallback her zaman iyidir
+                };
+
                 return new GetAllStockTransactionsResponse(
                     Id: x.Id,
                     DocumentNo: x.DocumentNo,
@@ -62,7 +71,7 @@ namespace MiniERP.Application.Features.StockTransactions.Queries.GetAllStockTran
                     WarehouseName: x.Warehouse?.Name ?? "Tanımsız Depo",
                     CustomerName: x.Customer?.Name ?? "Tanımsız Cari",
                     CreatedBy: createdName,
-                    TypeName: x.Type.ToString() == "In" ? "Giriş" : "Çıkış",
+                    TypeName: typeLabel,    // 🚀 ÖNEMLİ: Frontend'deki badge rengi için integer değeri de gönderiyoruz!
                     Description: x.Description ?? ""
                 );
             }).ToList();

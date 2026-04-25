@@ -7,10 +7,11 @@ import { useAuthStore } from '../store/useAuthStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { APP_PERMISSIONS } from '../constants/permissions';
 
-const TRANSACTION_TYPES: Record<number, { label: string, badgeClass: string }> = {
+// 🚀 Key değerlerini hem string hem number güvenli hale getirdik
+const TRANSACTION_TYPES: Record<string | number, { label: string, badgeClass: string }> = {
   1: { label: "Giriş (Alım)", badgeClass: "bg-success-subtle text-success border-success-subtle" },
   2: { label: "Çıkış (Satış)", badgeClass: "bg-danger-subtle text-danger border-danger-subtle" },
-  3: { label: "Devir/Açılış", badgeClass: "bg-primary-subtle text-primary border-primary-subtle" }
+  3: { label: "Devir / Açılış", badgeClass: "bg-primary-subtle text-primary border-primary-subtle" },
 };
 
 const PAYMENT_TYPES = [
@@ -26,6 +27,9 @@ const StockTransactions = () => {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState<boolean>(false);
+
+  // 🚀 Fiyat Görünümü İçin Intermediate State
+  const [displayPrice, setDisplayPrice] = useState<string>("");
 
   const [rawProducts, setRawProducts] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -48,6 +52,20 @@ const StockTransactions = () => {
     cashId: null as string | null,
     bankId: null as string | null
   });
+
+  // 🛠️ YARDIMCI FONKSİYONLAR (Muhasebe Formatı)
+  const maskCurrency = (val: string) => {
+    let clean = val.replace(/[^0-9,]/g, "");
+    const parts = clean.split(",");
+    if (parts.length > 2) clean = parts[0] + "," + parts[1];
+    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return parts.length > 1 ? `${integerPart},${parts[1].slice(0, 2)}` : integerPart;
+  };
+
+  const unmaskPrice = (val: string) => {
+    if (!val) return 0;
+    return parseFloat(val.replace(/\./g, "").replace(",", ".")) || 0;
+  };
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -90,7 +108,9 @@ const StockTransactions = () => {
 
   const handleProductChange = (productId: string) => {
     const selectedProduct = rawProducts.find(p => p.id === productId);
-    setFormData(prev => ({ ...prev, productId, unitPrice: selectedProduct ? selectedProduct.defaultPrice : 0 }));
+    const price = selectedProduct ? selectedProduct.defaultPrice : 0;
+    setFormData(prev => ({ ...prev, productId, unitPrice: price }));
+    setDisplayPrice(price > 0 ? maskCurrency(price.toString().replace(".", ",")) : "");
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -113,28 +133,35 @@ const StockTransactions = () => {
       ...formData,
       documentNo: "ST-" + Date.now().toString().slice(-6),
       warehouseId: defaultWarehouseId || "",
+      type: 1, // Varsayılan Giriş
+      productId: "",
+      unitPrice: 0,
+      quantity: 1,
+      customerId: null,
     });
+    setDisplayPrice("");
     setShowModal(true);
   };
 
   return (
-    <div className="page-stock-transactions">
+    <div className="page-stock-transactions animate__animated animate__fadeIn">
       <DataTable<any>
         title="Stok Hareketleri"
         description="Giriş, çıkış ve devir/açılış işlemlerini tek ekrandan yönetin."
         columns={[
           { header: "TARİH", accessor: (t) => new Date(t.transactionDate).toLocaleDateString('tr-TR') },
-          { header: "BELGE NO", accessor: (t) => t.documentNo },
+          { header: "BELGE NO", accessor: (t) => <span className="fw-bold text-primary">{t.documentNo}</span> },
           { header: "ÜRÜN", accessor: (t) => t.productName },
           { 
             header: "TİP", 
             accessor: (t) => {
-              const info = TRANSACTION_TYPES[t.type] || { label: t.typeName, badgeClass: "bg-secondary" };
+              // 🚀 Buradaki t.type kontrolünü hem sayı hem string için güvenli yaptık
+              const info = TRANSACTION_TYPES[t.type] || { label: t.typeName || "Belirsiz", badgeClass: "bg-secondary" };
               return <span className={`badge border ${info.badgeClass}`}>{info.label}</span>;
             }
           },
-          { header: "MİKTAR", accessor: (t) => <span className="fw-bold">{t.quantity}</span> },
-          { header: "TOPLAM", accessor: (t) => <span className="text-success fw-bold">{t.totalPrice.toLocaleString('tr-TR')} ₺</span> }
+          { header: "MİKTAR", accessor: (t) => <span className="fw-bold">{t.quantity.toLocaleString('tr-TR')}</span> },
+          { header: "TOPLAM", accessor: (t) => <span className="text-success fw-bold">{(t.totalPrice || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</span> }
         ]}
         data={transactions}
         onAdd={hasPermission(APP_PERMISSIONS.StockTransactions.Create) ? openCreateModal : undefined}
@@ -143,10 +170,9 @@ const StockTransactions = () => {
 
       <AppModal show={showModal} title={formData.type === 3 ? "Yeni Stok Açılış Fişi" : "Yeni Stok Hareketi"} onClose={() => setShowModal(false)} onSave={handleSave} size="lg">
         <div className="row g-3">
-          {/* Hareket Tipi Seçimi */}
           <div className="col-md-4">
             <label className="form-label small fw-bold">Hareket Tipi</label>
-            <select name="type" value={formData.type} onChange={(e) => setFormData({...formData, type: parseInt(e.target.value), customerId: null})} className="form-select form-select-sm border-primary">
+            <select name="type" value={formData.type} onChange={(e) => setFormData({...formData, type: parseInt(e.target.value), customerId: null})} className="form-select form-select-sm border-primary fw-bold">
               <option value={1}>Giriş (Alım)</option>
               <option value={2}>Çıkış (Satış)</option>
               <option value={3}>Devir / Açılış</option>
@@ -163,7 +189,6 @@ const StockTransactions = () => {
 
           <hr className="my-2 opacity-10" />
 
-          {/* Stok Bilgileri */}
           <div className="col-md-6">
             <AppSelect label="Ürün Seçimi" options={products} value={formData.productId} onChange={handleProductChange} isSearchable={true} />
           </div>
@@ -175,16 +200,29 @@ const StockTransactions = () => {
             <label className="form-label small fw-bold">Miktar</label>
             <input type="number" name="quantity" value={formData.quantity} onChange={handleInputChange} className="form-control form-control-sm" />
           </div>
+          
+          {/* 🚀 BİRİM FİYAT - MUHASEBE FORMATLI */}
           <div className="col-md-4">
             <label className="form-label small fw-bold">Birim Fiyat (₺)</label>
-            <input type="number" name="unitPrice" value={formData.unitPrice} onChange={handleInputChange} className="form-control form-control-sm" />
+            <input 
+                type="text" 
+                className="form-control form-control-sm text-end fw-bold"
+                placeholder="0,00"
+                value={displayPrice}
+                onChange={(e) => {
+                  const masked = maskCurrency(e.target.value);
+                  setDisplayPrice(masked);
+                  setFormData(prev => ({ ...prev, unitPrice: unmaskPrice(masked) }));
+                }}
+                onFocus={(e) => e.target.select()}
+            />
           </div>
+          
           <div className="col-md-4">
             <label className="form-label small fw-bold">Toplam</label>
-            <div className="form-control form-control-sm bg-dark-subtle fw-bold">{(formData.quantity * formData.unitPrice).toLocaleString('tr-TR')} ₺</div>
+            <div className="form-control form-control-sm bg-dark-subtle fw-bold text-end">{(formData.quantity * formData.unitPrice).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺</div>
           </div>
 
-          {/* 🚀 AÇILIŞ FİŞİ DEĞİLSE CARİ VE ÖDEME ALANLARINI GÖSTER */}
           {formData.type !== 3 && (
             <>
               <hr className="my-2 opacity-10" />
