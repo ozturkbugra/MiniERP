@@ -19,7 +19,7 @@ namespace MiniERP.Application.Features.Transactions.Queries.GetBankStatement
             // IQueryable üzerinden sorguyu asenkron hazırlıyoruz
             var query = _bankTransactionRepository.GetAll()
                 .Where(x => x.BankId == request.BankId && !x.IsDeleted) // Soft delete kontrolü
-                .OrderBy(x => x.Date);
+                .OrderBy(x => x.Date).ThenBy(x=> x.CreatedDate);
 
             // Repository'e eklediğimiz o meşhur ToListAsync köprüsü ile veritabanına gidiyoruz
             var transactions = await _bankTransactionRepository.ToListAsync(query, cancellationToken);
