@@ -50,6 +50,7 @@ public static class ServiceRegistration
         services.AddScoped<IAppUserService, AppUserService>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
         services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddHttpClient<IAIService, GeminiService>();
     }
 
     public static async Task SeedDatabaseAsync(this IApplicationBuilder app)
