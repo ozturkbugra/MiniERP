@@ -1,7 +1,8 @@
 ﻿namespace MiniERP.Application.Interfaces
 {
+    public record ChatMessage(string Role, string Content);
     public interface IAIService
     {
-        Task<string> AnalyzeFinancialDataAsync(string dataSummary, CancellationToken cancellationToken);
+        Task<string> ChatWithAIAsync(List<ChatMessage> history, CancellationToken cancellationToken);
     }
 }

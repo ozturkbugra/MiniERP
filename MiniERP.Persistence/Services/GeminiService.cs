@@ -22,32 +22,24 @@ namespace MiniERP.Persistence.Services
             _model = configuration["GeminiConfig:Model"] ?? "gemini-1.5-flash";
         }
 
-        public async Task<string> AnalyzeFinancialDataAsync(string dataSummary, CancellationToken cancellationToken)
+        public async Task<string> ChatWithAIAsync(List<ChatMessage> history, CancellationToken cancellationToken)
         {
-            // Google Gemini API URL'i
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent?key={_apiKey}";
 
-            // AI'ya ne yapacağını söylediğimiz "Karakter" tanımlaması (Prompt)
-            var requestBody = new
-            {
-                contents = new[] {
-                    new {
-                        parts = new[] {
-                            new { text = $"Sen bir kıdemli finans analistisin. Aşağıdaki verileri inceleyip nakit akışı, riskler ve öneriler içeren kısa bir rapor yaz:\n\n{dataSummary}" }
-                        }
-                    }
-                }
-            };
+            // Gemini 'assistant' yerine 'model' kelimesini kullanır, onu mapliyoruz
+            var contents = history.Select(m => new {
+                role = m.Role == "assistant" ? "model" : "user",
+                parts = new[] { new { text = m.Content } }
+            }).ToArray();
 
-            // İsteği gönderiyoruz
+            var requestBody = new { contents };
+
             var response = await _httpClient.PostAsJsonAsync(url, requestBody, cancellationToken);
 
-            if (!response.IsSuccessStatusCode) return "AI Analizi şu an yapılamıyor.";
+            if (!response.IsSuccessStatusCode) return "Asistan şu an cevap veremiyor.";
 
             var result = await response.Content.ReadFromJsonAsync<dynamic>();
-
-            // Gemini'den gelen cevabın içindeki metni çekiyoruz
-            return result?.candidates[0]?.content?.parts[0]?.text ?? "Cevap alınamadı.";
+            return result?.candidates[0]?.content?.parts[0]?.text ?? "Anlayamadım şef, tekrar eder misin?";
         }
     }
 }
