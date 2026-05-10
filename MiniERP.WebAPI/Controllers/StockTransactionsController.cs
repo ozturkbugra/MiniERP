@@ -61,7 +61,7 @@ public sealed class StockTransactionsController : ControllerBase
     }
 
     [HttpGet("critical-stock")]
-    [Authorize(Policy = AppPermissions.StockTransactions.View)]
+    [Authorize(Policy = AppPermissions.Reports.View)]
     public async Task<IActionResult> GetCriticalStock([FromQuery] GetCriticalStockQuery query, CancellationToken cancellationToken)
     {
         var response = await _mediator.Send(query, cancellationToken);

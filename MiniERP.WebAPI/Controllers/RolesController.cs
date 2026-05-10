@@ -50,7 +50,7 @@ public sealed class RolesController : ControllerBase
     [Authorize(Policy = AppPermissions.Roles.Update)]
     public async Task<IActionResult> Update(Guid id, UpdateRoleCommand request, CancellationToken cancellationToken)
     {
-        if (id.ToString() != request.Id)
+        if (id.ToString().ToUpper() != request.Id)
         {
             return BadRequest("URL'deki ID ile gönderilen verideki ID uyuşmuyor.");
         }

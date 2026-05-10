@@ -25,7 +25,7 @@ namespace MiniERP.Application.Features.Transactions.Queries.GetCustomerStatement
             // 1. Müşterinin tüm geçerli (silinmemiş) hareketlerini tarihe göre getir
             var query = _customerTransactionRepository.GetAll()
             .Where(x => x.CustomerId == request.CustomerId && !x.IsDeleted)
-            .OrderBy(x => x.Date);
+            .OrderBy(x => x.Date).ThenBy(x=> x.CreatedDate);
             var transactions = await _customerTransactionRepository.ToListAsync(query, cancellationToken);
 
             var result = new List<CustomerStatementResponse>();

@@ -28,6 +28,7 @@ namespace MiniERP.Application.Features.Orders.Commands.ApproveOrder
 
         public async Task<Result<string>> Handle(ApproveOrderCommand request, CancellationToken cancellationToken)
         {
+            // Serializable isolation level mantıklı, stokta çakışma olmasın
             await using var transaction = await _unitOfWork.BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
 
             try
@@ -41,38 +42,39 @@ namespace MiniERP.Application.Features.Orders.Commands.ApproveOrder
                 if (order.IsDeleted) return Result<string>.Failure("Silinmiş sipariş onaylanamaz.");
                 if (order.Status != OrderStatus.Pending) return Result<string>.Failure("Sipariş zaten onaylanmış veya iptal edilmiş.");
 
-                // 1. STOK MÜSAİTLİK KONTROLÜ
                 foreach (var line in order.OrderDetails)
                 {
-                    // a) Fiziki Bakiye: Depodaki gerçek miktar (Sadece gerekli kolonu çekiyoruz)
+                    // 🚀 1. FİZİKİ BAKİYE HESABI (Düzeltildi)
+                    // Sadece Out (Çıkış) olanları eksi say, In ve Opening olanları artı say.
                     var physicalBalance = _stockRepository
                         .Where(x => x.ProductId == line.ProductId && x.WarehouseId == line.WarehouseId && !x.IsDeleted)
-                        .Select(x => x.Type == StockTransactionType.In ? x.Quantity : -x.Quantity)
-                        .ToList()
-                        .Sum();
+                        .Select(x => x.Type == StockTransactionType.Out ? -x.Quantity : x.Quantity)
+                        .Sum(); // ToList() kaldırıldı, direkt SQL'de toplansın
 
-                    // b) Rezerve Miktar: Onaylanmış diğer siparişlerin toplamı
+                    // 🚀 2. REZERVE MİKTAR HESABI
+                    // Onaylanmış ama henüz faturaya dönüşüp stoktan düşmemiş siparişler
                     var reservedAmount = _orderDetailRepository
                         .Where(x => x.ProductId == line.ProductId &&
                                     x.WarehouseId == line.WarehouseId &&
-                                    x.Order!.Status == OrderStatus.Approved &&
+                                    x.Order!.Status == OrderStatus.Approved && // Sadece Approved olanlar rezerve sayılır
                                     !x.IsDeleted &&
-                                    x.OrderId != order.Id) // Kendi siparişimizi rezerve saymıyoruz
+                                    x.OrderId != order.Id)
                         .Select(x => x.Quantity)
-                        .ToList()
                         .Sum();
 
                     var availableStock = physicalBalance - reservedAmount;
 
-                    // c) Müsaitlik Kontrolü
+                    // 🚀 3. MÜSAİTLİK KONTROLÜ
                     if (availableStock < line.Quantity)
                     {
-                        return Result<string>.Failure($"Yetersiz stok! Ürün ID: {line.ProductId}, Müsait: {availableStock}, Talep: {line.Quantity}");
+                        // Mesajı daha kullanıcı dostu yaptık
+                        return Result<string>.Failure($"Yetersiz stok! Müsait: {availableStock:N2}, Talep: {line.Quantity:N2}. " +
+                            $"(Fiziki: {physicalBalance:N2}, Rezerve: {reservedAmount:N2})");
                     }
                 }
 
                 // 2. ONAY VE KAYIT
-                order.Approve();
+                order.Approve(); // Burada Status = Approved yapıyorsun
                 await _orderRepository.UpdateAsync(order, cancellationToken);
 
                 await _unitOfWork.SaveChangesAsync(cancellationToken);

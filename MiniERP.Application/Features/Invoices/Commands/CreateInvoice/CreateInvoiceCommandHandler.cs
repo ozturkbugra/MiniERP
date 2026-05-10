@@ -3,6 +3,10 @@ using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
 using MiniERP.Domain.Enums;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Invoices.Commands.CreateInvoice
 {
@@ -58,7 +62,7 @@ namespace MiniERP.Application.Features.Invoices.Commands.CreateInvoice
                 string lastSequenceStr = lastInvoice.InvoiceNumber.Replace(prefix, "");
                 if (long.TryParse(lastSequenceStr, out long lastSequence))
                 {
-                    invoiceNumber = $"{prefix}{(lastSequence + 1):D8}"; // 1 arttırıp 8 haneye tamamla
+                    invoiceNumber = $"{prefix}{(lastSequence + 1):D8}";
                 }
                 else
                 {
@@ -83,8 +87,18 @@ namespace MiniERP.Application.Features.Invoices.Commands.CreateInvoice
                 if (finalWarehouseId == null || finalWarehouseId == Guid.Empty)
                     return Result<string>.Failure($"{d.ProductId} ID'li ürün için depo seçilmemiş.");
 
+                // 🚀 KRİTİK DÜZELTME: Miktarı daima mutlak (pozitif) kaydediyoruz.
+                // Kullanıcı arayüzde eksi yazsa bile veritabanına pozitif girecek,
+                // Onay aşamasında zaten In/Out ile doğru işlemi yapacağız.
+                decimal absQuantity = Math.Abs(d.Quantity);
+
                 invoice.AddDetail(new InvoiceDetail(
-                    d.ProductId, finalWarehouseId.Value, d.Quantity, d.UnitPrice, d.DiscountRate, d.VatRate));
+                    d.ProductId,
+                    finalWarehouseId.Value,
+                    absQuantity, // 🚀 Koruma burada
+                    d.UnitPrice,
+                    d.DiscountRate,
+                    d.VatRate));
             }
 
             // 5. Kaydet 

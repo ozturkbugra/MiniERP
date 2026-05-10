@@ -18,7 +18,7 @@ namespace MiniERP.Application.Features.Transactions.Queries.GetCashStatement
         {
             var query = _cashTransactionRepository.GetAll()
                 .Where(x => x.CashId == request.CashId && !x.IsDeleted) // Soft delete kontrolü
-                .OrderBy(x => x.Date);
+                .OrderBy(x => x.Date).ThenBy(x => x.CreatedDate);
 
             var transactions = await _cashTransactionRepository.ToListAsync(query, cancellationToken);
 

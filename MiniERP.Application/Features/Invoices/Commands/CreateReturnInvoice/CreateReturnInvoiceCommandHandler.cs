@@ -3,6 +3,10 @@ using MiniERP.Application.Interfaces;
 using MiniERP.Domain.Common;
 using MiniERP.Domain.Entities;
 using MiniERP.Domain.Enums;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace MiniERP.Application.Features.Invoices.Commands.CreateReturnInvoice
 {
@@ -31,7 +35,7 @@ namespace MiniERP.Application.Features.Invoices.Commands.CreateReturnInvoice
             if (parentInvoice.Status != InvoiceStatus.Approved)
                 return Result<string>.Failure("Sadece onaylanmış faturaların iadesi yapılabilir.");
 
-            // 2. İade faturasının tipini belirleme kısmı (Satışsa Satış İade, Alışsa Alış İade olur)
+            // 2. İade faturasının tipini belirleme kısmı
             InvoiceType returnType = parentInvoice.Type switch
             {
                 InvoiceType.Sales => InvoiceType.SalesReturn,
@@ -39,18 +43,32 @@ namespace MiniERP.Application.Features.Invoices.Commands.CreateReturnInvoice
                 _ => throw new Exception("Bu fatura tipi iade edilemez.")
             };
 
-            // 3. Fatura Numarası Üretimi (Dün yaptığımız otomatik artan mantığın aynısı)
+            // 🚀 3. Fatura Numarası Üretimi (TryParse ile patlamaya karşı korumalı)
             string year = DateTime.Now.Year.ToString();
-            string prefix = $"RT-{year}-"; 
+            string prefix = $"RT-{year}-";
 
-            var lastInvoices = await _invoiceRepository.ToListAsync(
-                _invoiceRepository.Where(x => x.InvoiceNumber.StartsWith(prefix)).OrderByDescending(x => x.InvoiceNumber).Take(1),
-                cancellationToken);
-
+            var query = _invoiceRepository.Where(x => x.InvoiceNumber.StartsWith(prefix)).OrderByDescending(x => x.InvoiceNumber).Take(1);
+            var lastInvoices = await _invoiceRepository.ToListAsync(query, cancellationToken);
             var lastInvoice = lastInvoices.FirstOrDefault();
-            string invoiceNumber = lastInvoice == null
-                ? $"{prefix}00000001"
-                : $"{prefix}{(long.Parse(lastInvoice.InvoiceNumber.Replace(prefix, "")) + 1):D8}";
+
+            string invoiceNumber;
+            if (lastInvoice == null)
+            {
+                invoiceNumber = $"{prefix}00000001";
+            }
+            else
+            {
+                string lastSequenceStr = lastInvoice.InvoiceNumber.Replace(prefix, "");
+                if (long.TryParse(lastSequenceStr, out long lastSequence))
+                {
+                    invoiceNumber = $"{prefix}{(lastSequence + 1):D8}";
+                }
+                else
+                {
+                    // DB'de formatı bozuk bir RT serisi varsa rastgele atayıp kurtarsın
+                    invoiceNumber = $"{prefix}{new Random().Next(1, 99999999):D8}";
+                }
+            }
 
             // 4. Yeni İade Faturasını (Taslak olarak) yaratıyoruz
             var returnInvoice = new Invoice(
@@ -63,35 +81,46 @@ namespace MiniERP.Application.Features.Invoices.Commands.CreateReturnInvoice
                 parentInvoice.Id
             );
 
-            // 5. Miktar Kontrolü: Almadığı veya satmadığı malı iade etmesin
+            // 🚀 5. Miktar Kontrolü ve Negatif Zırhı
             foreach (var reqDetail in request.Details)
             {
-                // Orijinal faturada bu ürün var mı ve miktarı ne kadar?
+                // Frontend eksi gönderse bile pozitife çevirip öyle işlem yapıyoruz
+                decimal absReturnQuantity = Math.Abs(reqDetail.ReturnQuantity);
+
+                if (absReturnQuantity == 0)
+                    return Result<string>.Failure("İade miktarı sıfır olamaz.");
+
+                // Orijinal faturada bu ürün var mı?
                 var originalDetail = parentInvoice.Details.FirstOrDefault(x => x.ProductId == reqDetail.ProductId);
 
                 if (originalDetail == null)
                     return Result<string>.Failure("İade edilmek istenen ürün orijinal faturada yok.");
 
-                if (reqDetail.ReturnQuantity > originalDetail.Quantity)
-                    return Result<string>.Failure($"Hata: {reqDetail.ProductId} ürününden en fazla {originalDetail.Quantity} adet iade edebilirsiniz.");
-
-                if (reqDetail.ReturnQuantity <= 0)
-                    return Result<string>.Failure("İade miktarı sıfır veya eksi olamaz.");
+                // Orijinal miktar da DB'de pozitif olduğu için kıyaslama kusursuz çalışır
+                if (absReturnQuantity > originalDetail.Quantity)
+                    return Result<string>.Failure($"Hata: Bu üründen en fazla {originalDetail.Quantity} adet iade edebilirsiniz.");
 
                 // Kontrolden geçti, iade faturasına kalemi ekle
                 returnInvoice.AddDetail(new InvoiceDetail(
                     reqDetail.ProductId,
                     reqDetail.WarehouseId,
-                    reqDetail.ReturnQuantity, 
-                    reqDetail.UnitPrice,     
+                    absReturnQuantity, // 🚀 Daima pozitif
+                    reqDetail.UnitPrice,
                     reqDetail.DiscountRate,
                     reqDetail.VatRate
                 ));
             }
 
             // 6. Kaydet ve bitir
-            await _invoiceRepository.AddAsync(returnInvoice, cancellationToken);
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await _invoiceRepository.AddAsync(returnInvoice, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                return Result<string>.Failure($"İade faturası oluşturulurken hata: {ex.Message}");
+            }
 
             return Result<string>.Success(returnInvoice.InvoiceNumber, $"İade faturası taslağı oluşturuldu. No: {invoiceNumber}");
         }
