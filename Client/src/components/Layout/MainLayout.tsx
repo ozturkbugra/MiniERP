@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import AIChatBot from '../AIChatBot'; // Bileşeni import ettik
 
 const MainLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -66,6 +67,8 @@ const MainLayout: React.FC = () => {
       <a href="#" className="back-to-top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
         <i className="bi bi-arrow-up"></i>
       </a>
+
+      <AIChatBot />
     </>
   );
 };

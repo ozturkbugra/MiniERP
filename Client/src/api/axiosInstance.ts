@@ -31,7 +31,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     // 🟢 BAŞARILI İŞLEMLER (POST, PUT, DELETE)
-    if (["post", "put", "delete"].includes(response.config.method || "") && response.data?.message) {
+    if (
+      ["post", "put", "delete"].includes(response.config.method || "") && 
+      response.data?.message && 
+      !response.config.url?.includes('/AI/chat') // 🚀 AI sohbetini pas geçme şartı
+    ) {
       toast.success(response.data.message); 
     }
     return response;
