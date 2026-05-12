@@ -55,22 +55,29 @@ public static class ServiceRegistration
 
     public static async Task SeedDatabaseAsync(this IApplicationBuilder app)
     {
-        // Kapsam (Scope) oluşturup servisleri çekiyoruz
         using (var scope = app.ApplicationServices.CreateScope())
         {
             var services = scope.ServiceProvider;
             try
             {
-                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-                var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
                 var context = services.GetRequiredService<AppDbContext>();
 
-                // DbInitializer'ı çağırıyoruz
+                // 🔥 KRİTİK DOKUNUŞ: Önce Migration'ları uygula
+                // Bu satır Docker içindeki boş SQL'de 'MiniERP_DB'yi ve tabloları oluşturur.
+                await context.Database.MigrateAsync();
+
+                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
+
+                // 2. Tablolar oluştuktan sonra verileri basıyoruz
                 await DbInitializer.SeedAsync(userManager, roleManager, context);
+
+                Console.WriteLine("Docker Limanı Hazır: Veritabanı oluşturuldu ve veriler basıldı! 🐋🏁");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Hata oluştu: {ex.Message}");
+                // Hatayı loglayalım ki Docker Desktop'ta görebilelim
+                Console.WriteLine($"Migration veya Seeding sırasında hata oluştu aga: {ex.Message}");
             }
         }
     }

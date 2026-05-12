@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'; // Bildirim kütüphanesi
 
 // Kendi axios instance'ımızı oluşturuyoruz
 const api = axios.create({
-  baseURL: 'https://localhost:7006/api', // Senin .NET API adresin
+  baseURL: 'http://localhost:5000/api', // Senin .NET API adresin
   headers: {
     'Content-Type': 'application/json',
   },

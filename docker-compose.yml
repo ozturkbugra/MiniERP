@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    # 2022 kalsın aga, sorun versiyon değil büyük ihtimalle şifre
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: minierp-db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      # Şifreyi daha karmaşık yaptık, SQL Server bunu istiyor
+      - MSSQL_SA_PASSWORD=Bugra_12345! 
+    networks:
+      - minierp-network
+
+  backend:
+    image: minierp-backend
+    container_name: minierp-api
+    ports:
+      - "5000:8080" 
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development 
+      # Şifreyi burada da güncelledik
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MiniERP_DB;User Id=sa;Password=Bugra_12345!;MultipleActiveResultSets=true;TrustServerCertificate=True
+    depends_on:
+      - sqlserver
+    networks:
+      - minierp-network
+
+  frontend:
+    image: minierp-frontend
+    container_name: minierp-web
+    ports:
+      - "3000:80" 
+    depends_on:
+      - backend
+    networks:
+      - minierp-network
+
+networks:
+  minierp-network:
+    driver: bridge

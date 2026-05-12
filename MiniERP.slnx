@@ -10,6 +10,7 @@
     <File Path="Client/tsconfig.node.json" />
     <File Path="Client/vite.config.ts" />
   </Folder>
+  <Folder Name="/Solution Items/" />
   <Project Path="MiniERP.Application/MiniERP.Application.csproj" />
   <Project Path="MiniERP.Domain/MiniERP.Domain.csproj" />
   <Project Path="MiniERP.Infrastructure/MiniERP.Infrastructure.csproj" />
